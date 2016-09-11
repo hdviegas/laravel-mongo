@@ -10,13 +10,15 @@ Convenience library for working with MongoDB documents in Laravel.
     'database'      => env('DB_DATABASE', 'test'),
     'username'      => env('DB_USERNAME', ''),
     'password'      => env('DB_PASSWORD', ''),
-    'uriOptions'    => [],
+    'uriOptions'    => [
+        'replicaSet' => empty(env('DB_RSNAME')) ? null : env('DB_RSNAME', 'rs1'),
+    ],
     'driverOptions' => [
         'typeMap' => [
             'root'     => 'array',
             'document' => 'array',
-            'array'    => 'array'
-        ]
-    ]
+            'array'    => 'array',
+        ],
+    ],
 ],
 ```

@@ -41,12 +41,12 @@ class MongoDbConnection extends Connection
 
         $this->config        = $config;
         $this->database      = $config['database'];
-        $this->mongoClient   = $this->createConnection($config);
+        $this->mongoClient   = $this->createClient($config);
         $this->mongoDatabase = $this->mongoClient->selectDatabase($config['database']);
     }
 
     /**
-     * Dynamically pass methods to the connection.
+     * Dynamically pass methods to the underlying MongoDB database instance.
      *
      * @param  string $method
      * @param  array  $parameters
@@ -58,24 +58,13 @@ class MongoDbConnection extends Connection
     }
 
     /**
-     * Gets a collection instance for a given collection in the current database.
-     *
-     * @param  string $collection
-     * @return Collection
-     */
-    public function collection($collection)
-    {
-        return $this->mongoDatabase->selectCollection($collection);
-    }
-
-    /**
      * Creates a MongoDB client instance.
      *
      * @param  array $config
      * @return Client
      * @throws InvalidArgumentException
      */
-    protected function createConnection(array $config)
+    protected function createClient(array $config)
     {
         if (empty($config['hosts']) || (!is_string($config['hosts']) && !is_array($config['hosts']))) {
             throw new InvalidArgumentException('The host must be a valid string, or an array.');
@@ -111,48 +100,58 @@ class MongoDbConnection extends Connection
     }
 
     /**
-     * Gets the MongoDB client instance.
+     * Gets the connected MongoDB client instance.
      *
      * @return Client
      */
-    public function getMongoClient()
+    public function getClient()
     {
         return $this->mongoClient;
     }
 
     /**
-     * Gets the MongoDB database instance.
+     * Gets a MongoDB collection instance for a given collection in the current database.
+     *
+     * @param  string $collection
+     * @return Collection
+     */
+    public function getCollection($collection)
+    {
+        return $this->mongoDatabase->selectCollection($collection);
+    }
+
+    /**
+     * Gets the connected MongoDB database instance.
      *
      * @return Database
      */
-    public function getMongoDb()
+    public function getDatabase()
     {
         return $this->mongoDatabase;
     }
 
     /**
-     * Sets the name of the connected database.
+     * Connects to a given MongoDB database.
      *
-     * @param  string $database
-     * @return string
+     * @param string $database
      */
-    public function setDatabaseName($database)
+    public function setDatabase($database)
     {
-        $this->database      = $database;
-        $this->mongoDatabase = $this->mongoClient->selectDatabase($this->database);
-
-        return $this->database;
+    	$this->database      = $database;
+    	$this->mongoDatabase = $this->mongoClient->selectDatabase($database);
     }
 
     /**
-     * Gets a collection instance for a given collection in the current database.
+     * Sets the database name for the connected MongoDB database.
      *
-     * @param  string $table
-     * @return Collection
-     * @see    MongoDbConnection::collection()
+     * @param  string $database
+     * @return string
+     * @see   MongoDbConnection::setDatabase()
      */
-    public function table($table)
+    public function setDatabaseName($database)
     {
-        return $this->collection($table);
+    	$this->setDatabase($database);
+
+    	return $database;
     }
 }

@@ -3,7 +3,7 @@ Convenience library for working with MongoDB documents in Laravel.
 
 ## Installation
 
-Configure your database connection by adding and editing the configuration array found below to the `config/database.php` file.
+Configure your database connection by adding and editing the following array to the `config/database.php` file.
 
 ```php
 'mongodb' => [

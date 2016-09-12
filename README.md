@@ -3,7 +3,7 @@ Convenience library for working with MongoDB documents in Laravel.
 
 ## Installation
 
-Configure your database connection by adding and editing the following array to the `config/database.php` file:
+Configure your database connection by adding and editing the configuration array found below to the `config/database.php` file.
 
 ```php
 'mongodb' => [
@@ -20,13 +20,15 @@ Configure your database connection by adding and editing the following array to 
 ],
 ```
 
-You will also have to add the included service provider to the `config/app.php` file,
+### Laravel
+For Laravel installations, add the included service provider to the `config/app.php` file.
 
 ```php
 Lindelius\LaravelMongo\MongoDbServiceProvider::class,
 ```
 
-or, if you are using Lumen, add the following to the `bootstrap/app.php` file:
+### Lumen
+For Lumen installations, add the included service provider to the `bootstrap/app.php` file instead.
 
 ```php
 $app->register('Lindelius\LaravelMongo\MongoDbServiceProvider');

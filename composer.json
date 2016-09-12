@@ -1,0 +1,32 @@
+{
+    "name": "lindelius/laravelmongo",
+    "description": "Convenience library for working with MongoDB documents in Laravel",
+    "keywords": ["mongodb", "php", "laravel", "lumen", "models", "helpers", "utilities"],
+    "homepage": "https://github.com/lindelius/laravel-mongo",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "Tom Lindelius",
+            "email": "tom.lindelius@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Lindelius\\LaravelMongo\\": "src/"
+        },
+        "files": [
+            "src/functions.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Lindelius\\LaravelMongo\\Tests\\": "tests/"
+        }
+    },
+    "require": {
+        "mongodb/mongodb": "^1.0.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "5.5.*"
+    }
+}

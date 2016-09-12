@@ -11,6 +11,7 @@ Convenience library for working with MongoDB documents in Laravel.
     'username'      => env('DB_USERNAME', ''),
     'password'      => env('DB_PASSWORD', ''),
     'uriOptions'    => [
+        'authSource' => env('DB_AUTHSOURCE', 'admin'),
         'replicaSet' => empty(env('DB_RSNAME')) ? null : env('DB_RSNAME', 'rs1'),
     ],
     'driverOptions' => [],

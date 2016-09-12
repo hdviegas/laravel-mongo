@@ -13,12 +13,6 @@ Convenience library for working with MongoDB documents in Laravel.
     'uriOptions'    => [
         'replicaSet' => empty(env('DB_RSNAME')) ? null : env('DB_RSNAME', 'rs1'),
     ],
-    'driverOptions' => [
-        'typeMap' => [
-            'root'     => 'array',
-            'document' => 'array',
-            'array'    => 'array',
-        ],
-    ],
+    'driverOptions' => [],
 ],
 ```

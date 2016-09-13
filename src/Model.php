@@ -173,20 +173,10 @@ abstract class Model implements JsonSerializable
             throw new Exception('The model "' . get_class($this) . '" is not associated with a database collection.');
         }
 
+        $this->database = app('db')->getDatabase();
+
         if ($this->database instanceof Database) {
             $this->collection = $this->database->selectCollection($this->collectionName);
-
-            return $this->collection;
-        }
-
-        if (defined('DB_HOSTS') && defined('DB_DATABASE')) {
-            $this->collection = getMongoDb(
-                DB_HOSTS,
-                DB_DATABASE,
-                defined('DB_USERNAME') ? DB_USERNAME : null,
-                defined('DB_PASSWORD') ? DB_PASSWORD : null,
-                defined('DB_RSNAME') && !empty(DB_RSNAME) ? ['replicaSet' => DB_RSNAME] : []
-            )->selectCollection($this->collectionName);
 
             return $this->collection;
         }
@@ -555,7 +545,8 @@ abstract class Model implements JsonSerializable
      */
     public function setDatabase(Database $database)
     {
-        $this->database = $database;
+    	$this->collection = null;
+        $this->database   = $database;
     }
 
     /**

@@ -55,7 +55,7 @@ abstract class Model implements JsonSerializable
     /**
      * @var string|null
      */
-    protected $collectionName = null;
+    protected static $collectionName = null;
 
     /**
      * @var Database|null
@@ -110,7 +110,7 @@ abstract class Model implements JsonSerializable
     {
         return [
             'collection'       => $this->collection,
-            'collectionName'   => $this->collectionName,
+            'collectionName'   => static::$collectionName,
             'database'         => $this->database,
             'maxRetryAttempts' => static::$maxRetryAttempts,
             'persisted'        => $this->persisted,
@@ -175,14 +175,14 @@ abstract class Model implements JsonSerializable
             return $this->collection;
         }
 
-        if (!is_string($this->collectionName) || $this->collectionName === '') {
+        if (!is_string(static::$collectionName) || static::$collectionName === '') {
             throw new Exception('The model "' . get_class($this) . '" is not associated with a database collection.');
         }
 
         $this->database = app('db')->getDatabase();
 
         if ($this->database instanceof Database) {
-            $this->collection = $this->database->selectCollection($this->collectionName);
+            $this->collection = $this->database->selectCollection(static::$collectionName);
 
             return $this->collection;
         }

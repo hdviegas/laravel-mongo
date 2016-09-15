@@ -5,7 +5,7 @@ namespace Lindelius\LaravelMongo\Tests;
 use DateTime;
 use InvalidArgumentException;
 use MongoDB\Database;
-use MongoDB\BSON\UTCDatetime;
+use MongoDB\BSON\UTCDateTime;
 use RuntimeException;
 
 /**

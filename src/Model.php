@@ -91,6 +91,11 @@ abstract class Model implements JsonSerializable
     private $updates = [];
 
     /**
+     * @var bool Whether to force the server to wait for the journal to be commited before acknowledging an operation
+     */
+    protected static $waitForJournal = false;
+
+    /**
      * @var int The write concern to use for the MongoDB operations
      */
     protected static $writeConcern = 1;
@@ -112,6 +117,7 @@ abstract class Model implements JsonSerializable
             'properties'       => $this->properties,
             'softDeletes'      => static::$softDeletes,
             'updates'          => $this->updates,
+            'waitForJournal'   => static::$waitForJournal,
             'writeConcern'     => static::$writeConcern
         ];
     }
@@ -257,6 +263,21 @@ abstract class Model implements JsonSerializable
     }
 
     /**
+     * Gets a new, pre-configured `MongoDB\Driver\WriteConcern` object.
+     *
+     * @return WriteConcern
+     * @throws InvalidArgumentException
+     */
+    protected function getWriteConcern()
+    {
+        if (static::$waitForJournal) {
+            return new WriteConcern(static::$writeConcern, 0, true);
+        }
+
+        return new WriteConcern(static::$writeConcern);
+    }
+
+    /**
      * Handle failed write operations.
      *
      * If you would like to log failed write attempts, this is the place to do it.
@@ -301,7 +322,7 @@ abstract class Model implements JsonSerializable
             try {
                 $deleteResult = $collection->deleteOne(
                     ['_id' => $id],
-                    ['writeConcern' => new WriteConcern(static::$writeConcern)]
+                    ['writeConcern' => $this->getWriteConcern()]
                 );
 
                 if ($deleteResult->isAcknowledged()) {
@@ -369,7 +390,7 @@ abstract class Model implements JsonSerializable
             try {
                 $insertResult = $collection->insertOne(
                     convertDateTimeObjects($properties),
-                    ['writeConcern' => new WriteConcern(static::$writeConcern)]
+                    ['writeConcern' => $this->getWriteConcern()]
                 );
 
                 if ($insertResult->isAcknowledged() && $insertResult->getInsertedCount() === 1) {
@@ -463,7 +484,7 @@ abstract class Model implements JsonSerializable
                 $updateResult = $collection->updateOne(
                     ['_id' => $id],
                     ['$set' => ['deleted_at' => null]],
-                    ['writeConcern' => new WriteConcern(static::$writeConcern)]
+                    ['writeConcern' => $this->getWriteConcern()]
                 );
 
                 if ($updateResult->isAcknowledged() && $updateResult->getMatchedCount() === 1) {
@@ -639,7 +660,7 @@ abstract class Model implements JsonSerializable
                 $updateResult = $collection->updateOne(
                     ['_id' => $id],
                     ['$set' => ['deleted_at' => getBsonDateFromDateTime($now)]],
-                    ['writeConcern' => new WriteConcern(static::$writeConcern)]
+                    ['writeConcern' => $this->getWriteConcern()]
                 );
 
                 if ($updateResult->isAcknowledged() && $updateResult->getMatchedCount() === 1) {
@@ -790,7 +811,7 @@ abstract class Model implements JsonSerializable
                     ],
                     [
                         'upsert'       => true,
-                        'writeConcern' => new WriteConcern(static::$writeConcern)
+                        'writeConcern' => $this->getWriteConcern()
                     ]
                 );
 

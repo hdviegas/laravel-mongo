@@ -23,27 +23,27 @@ use MongoDB\Driver\Exception\Exception as MongoException;
 abstract class Model implements JsonSerializable
 {
     /**
-     * @const OP_INSERT
+     * @var int OP_INSERT
      */
     const OP_INSERT = 0;
 
     /**
-     * @const OP_UPSERT
+     * @var int OP_UPSERT
      */
     const OP_UPSERT = 1;
 
     /**
-     * @const OP_SOFT_DELETE
+     * @var int OP_SOFT_DELETE
      */
     const OP_SOFT_DELETE = 2;
 
     /**
-     * @const OP_HARD_DELETE
+     * @var int OP_HARD_DELETE
      */
     const OP_HARD_DELETE = 3;
 
     /**
-     * @const OP_RESTORE
+     * @var int OP_RESTORE
      */
     const OP_RESTORE = 4;
 

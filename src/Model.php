@@ -300,12 +300,6 @@ abstract class Model implements JsonSerializable
      */
     private function hardDelete()
     {
-        $collection = $this->collection();
-
-        if (!$collection instanceof Collection) {
-            throw new Exception('The model "' . get_class($this) . '" is not associated with a database collection.');
-        }
-
         $id = $this->getId();
 
         if ($id === null || $id === false) {
@@ -320,7 +314,7 @@ abstract class Model implements JsonSerializable
 
         do {
             try {
-                $deleteResult = $collection->deleteOne(
+                $deleteResult = $this->collection()->deleteOne(
                     ['_id' => $id],
                     ['writeConcern' => $this->getWriteConcern()]
                 );
@@ -365,12 +359,6 @@ abstract class Model implements JsonSerializable
      */
     private function insert()
     {
-        $collection = $this->collection();
-
-        if (!$collection instanceof Collection) {
-            throw new Exception('The model "' . get_class($this) . '" is not associated with a database collection.');
-        }
-
         if ($this->isPersisted()) {
             return empty($this->updates);
         }
@@ -388,7 +376,7 @@ abstract class Model implements JsonSerializable
 
         do {
             try {
-                $insertResult = $collection->insertOne(
+                $insertResult = $this->collection()->insertOne(
                     convertDateTimeObjects($properties),
                     ['writeConcern' => $this->getWriteConcern()]
                 );
@@ -461,12 +449,6 @@ abstract class Model implements JsonSerializable
      */
     public function restore()
     {
-        $collection = $this->collection();
-
-        if (!$collection instanceof Collection) {
-            throw new Exception('The model "' . get_class($this) . '" is not associated with a database collection.');
-        }
-
         $id = $this->getId();
 
         if ($id === null || $id === false || !$this->isPersisted()) {
@@ -481,7 +463,7 @@ abstract class Model implements JsonSerializable
 
         do {
             try {
-                $updateResult = $collection->updateOne(
+                $updateResult = $this->collection()->updateOne(
                     ['_id' => $id],
                     ['$set' => ['deleted_at' => null]],
                     ['writeConcern' => $this->getWriteConcern()]
@@ -636,12 +618,6 @@ abstract class Model implements JsonSerializable
      */
     private function softDelete()
     {
-        $collection = $this->collection();
-
-        if (!$collection instanceof Collection) {
-            throw new Exception('The model "' . get_class($this) . '" is not associated with a database collection.');
-        }
-
         $id = $this->getId();
 
         if ($id === null || $id === false || !$this->isPersisted()) {
@@ -657,7 +633,7 @@ abstract class Model implements JsonSerializable
 
         do {
             try {
-                $updateResult = $collection->updateOne(
+                $updateResult = $this->collection()->updateOne(
                     ['_id' => $id],
                     ['$set' => ['deleted_at' => getBsonDateFromDateTime($now)]],
                     ['writeConcern' => $this->getWriteConcern()]
@@ -779,12 +755,6 @@ abstract class Model implements JsonSerializable
      */
     private function upsert()
     {
-        $collection = $this->collection();
-
-        if (!$collection instanceof Collection) {
-            throw new Exception('The model "' . get_class($this) . '" is not associated with a database collection.');
-        }
-
         $id = $this->getId();
 
         if ($id === false) {
@@ -800,7 +770,7 @@ abstract class Model implements JsonSerializable
 
         do {
             try {
-                $updateResult = $collection->updateOne(
+                $updateResult = $this->collection()->updateOne(
                     ['_id' => $id],
                     [
                         '$set'         => convertDateTimeObjects(array_merge(['updated_at' => $now], $this->updates)),

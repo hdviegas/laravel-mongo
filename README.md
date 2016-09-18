@@ -6,7 +6,7 @@ Convenience library for working with MongoDB documents in Laravel.
 In order to install this library, issue the following command from your Laravel/Lumen project's root folder:
 
 ```
-composer require "lindelius/laravelmongo=^0.1"
+composer require "lindelius/laravel-mongo=^0.1"
 ```
 
 After installing the library, configure your database connection by adding and editing the following array to the `config/database.php` file.

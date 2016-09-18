@@ -1,5 +1,5 @@
 {
-    "name": "lindelius/laravelmongo",
+    "name": "lindelius/laravel-mongo",
     "description": "Convenience library for working with MongoDB documents in Laravel and Lumen",
     "keywords": ["mongodb", "php", "laravel", "lumen", "models", "helpers", "utilities"],
     "homepage": "https://github.com/lindelius/laravel-mongo",

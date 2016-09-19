@@ -1,6 +1,10 @@
 # laravel-mongo
 Convenience library for working with MongoDB documents in Laravel.
 
+This library is built on top of [the official MongoDB PHP library](https://github.com/mongodb/mongo-php-library) and includes an abstract model, database wrappers for Laravel and Lumen, and some necessary helper functions.
+
+Please note that this library is not intended to be a complete ORM and does not extend Eloquent.
+
 ## Installation
 
 In order to install this library, issue the following command from your Laravel/Lumen project's root folder:

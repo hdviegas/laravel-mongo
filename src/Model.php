@@ -557,7 +557,7 @@ abstract class Model implements JsonSerializable
      * @param  mixed  $value
      * @throws InvalidArgumentException
      */
-    private function setUpdate($field, $value)
+    private function prepareUpdate($field, $value)
     {
         if (!is_string($field)) {
             throw new InvalidArgumentException('The field name must be a valid string.');
@@ -731,7 +731,7 @@ abstract class Model implements JsonSerializable
             if ($isFilling) {
                 $this->updates = [];
             } else {
-                $this->setUpdate($property, $newValue);
+                $this->prepareUpdate($property, $newValue);
             }
         } catch (Exception $e) {
             $this->properties[$firstSegment] = $propertyBackup;

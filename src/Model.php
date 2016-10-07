@@ -266,7 +266,7 @@ abstract class Model implements JsonSerializable
      * @return Model[]
      * @throws Exception
      */
-    public static function find(array $filter, array $options = [])
+    public static function find(array $filter = [], array $options = [])
     {
         $cursor = static::collection()->find($filter, $options);
         $models = [];
@@ -298,7 +298,7 @@ abstract class Model implements JsonSerializable
      * @return Model|null
      * @throws Exception
      */
-    public static function findOne(array $filter, array $options = [])
+    public static function findOne(array $filter = [], array $options = [])
     {
         $document = static::collection()->findOne($filter, $options);
         $model    = null;

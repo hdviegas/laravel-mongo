@@ -26,22 +26,18 @@ abstract class Model implements JsonSerializable
      * @var int OP_INSERT
      */
     const OP_INSERT = 0;
-
     /**
      * @var int OP_UPSERT
      */
     const OP_UPSERT = 1;
-
     /**
      * @var int OP_SOFT_DELETE
      */
     const OP_SOFT_DELETE = 2;
-
     /**
      * @var int OP_HARD_DELETE
      */
     const OP_HARD_DELETE = 3;
-
     /**
      * @var int OP_RESTORE
      */
@@ -85,6 +81,11 @@ abstract class Model implements JsonSerializable
     protected static $softDeletes = false;
 
     /**
+     * @var bool Whether to automatically set timestamps
+     */
+    protected static $timestamps = true;
+
+    /**
      * @internal
      * @var array The updates to make when saving the object
      */
@@ -116,6 +117,7 @@ abstract class Model implements JsonSerializable
             'persisted'        => $this->persisted,
             'properties'       => $this->properties,
             'softDeletes'      => static::$softDeletes,
+            'timestamps'       => static::$timestamps,
             'updates'          => $this->updates,
             'waitForJournal'   => static::$waitForJournal,
             'writeConcern'     => static::$writeConcern
@@ -153,7 +155,7 @@ abstract class Model implements JsonSerializable
         if (is_array($object) || is_object($object)) {
             foreach ($object as $key => $value) {
                 if (is_string($key) && (strpos($key, '.') !== false || trim($key)[0] === '$')) {
-                    throw new RuntimeException('Nested field names must not contain any dots (.) or start with a dollar sign ($).');
+                    throw new RuntimeException('Nested field names must not contain any dots, or start with a dollar sign.');
                 }
 
                 if (is_array($value) || is_object($value)) {
@@ -297,14 +299,11 @@ abstract class Model implements JsonSerializable
      * @internal
      * @return bool
      * @throws Exception
+     * @throws \MongoDB\Driver\Exception\Exception
      */
     private function hardDelete()
     {
         $id = $this->getId();
-
-        if ($id === null || $id === false) {
-            return false;
-        }
 
         if (!$this->isPersisted()) {
             return true;
@@ -320,13 +319,13 @@ abstract class Model implements JsonSerializable
                 );
 
                 if ($deleteResult->isAcknowledged()) {
-                    $this->persisted = false;
-                    $this->updates   = $this->properties;
-
                     unset($this->properties['_id']);
                     unset($this->properties['created_at']);
                     unset($this->properties['deleted_at']);
                     unset($this->properties['updated_at']);
+
+                    $this->persisted = false;
+                    $this->updates   = $this->properties;
 
                     return true;
                 } else {
@@ -356,6 +355,7 @@ abstract class Model implements JsonSerializable
      * @internal
      * @return bool
      * @throws Exception
+     * @throws \MongoDB\Driver\Exception\Exception
      */
     private function insert()
     {
@@ -363,28 +363,25 @@ abstract class Model implements JsonSerializable
             return empty($this->updates);
         }
 
-        $attempt    = 1;
-        $properties = array_merge(
-            [
-                'created_at' => new DateTime(),
-                'deleted_at' => null,
-                'updated_at' => new DateTime()
-            ],
-            $this->properties,
-            ['_id' => new ObjectID()]
-        );
+        if (static::$timestamps) {
+            $this->updateProperty('updated_at', new DateTime());
+            $this->updateProperty('created_at', new DateTime());
+        }
+
+        $this->properties['_id'] = new ObjectID();
+
+        $attempt = 1;
 
         do {
             try {
                 $insertResult = $this->collection()->insertOne(
-                    convertDateTimeObjects($properties),
+                    convertDateTimeObjects($this->properties),
                     ['writeConcern' => $this->getWriteConcern()]
                 );
 
                 if ($insertResult->isAcknowledged() && $insertResult->getInsertedCount() === 1) {
                     $this->persisted  = true;
                     $this->updates    = [];
-                    $this->properties = $properties;
 
                     return true;
                 } else {
@@ -446,12 +443,13 @@ abstract class Model implements JsonSerializable
      *
      * @return bool
      * @throws Exception
+     * @throws \MongoDB\Driver\Exception\Exception
      */
     public function restore()
     {
         $id = $this->getId();
 
-        if ($id === null || $id === false || !$this->isPersisted()) {
+        if (!$this->isPersisted()) {
             return false;
         }
 
@@ -465,13 +463,12 @@ abstract class Model implements JsonSerializable
             try {
                 $updateResult = $this->collection()->updateOne(
                     ['_id' => $id],
-                    ['$set' => ['deleted_at' => null]],
+                    ['$unset' => ['deleted_at' => '']],
                     ['writeConcern' => $this->getWriteConcern()]
                 );
 
                 if ($updateResult->isAcknowledged() && $updateResult->getMatchedCount() === 1) {
-                    $this->properties['deleted_at'] = null;
-
+                    unset($this->properties['deleted_at']);
                     unset($this->updates['deleted_at']);
 
                     return true;
@@ -548,7 +545,7 @@ abstract class Model implements JsonSerializable
      */
     public function setDatabase(Database $database)
     {
-    	$this->collection = null;
+        $this->collection = null;
         $this->database   = $database;
     }
 
@@ -615,12 +612,13 @@ abstract class Model implements JsonSerializable
      * @internal
      * @return bool
      * @throws Exception
+     * @throws \MongoDB\Driver\Exception\Exception
      */
     private function softDelete()
     {
         $id = $this->getId();
 
-        if ($id === null || $id === false || !$this->isPersisted()) {
+        if (!$this->isPersisted()) {
             return false;
         }
 
@@ -629,10 +627,11 @@ abstract class Model implements JsonSerializable
         }
 
         $attempt = 1;
-        $now     = new DateTime();
 
         do {
             try {
+                $now = new DateTime();
+
                 $updateResult = $this->collection()->updateOne(
                     ['_id' => $id],
                     ['$set' => ['deleted_at' => getBsonDateFromDateTime($now)]],
@@ -698,7 +697,7 @@ abstract class Model implements JsonSerializable
         $property = trim($property);
 
         if ($property[0] === '$') {
-            throw new InvalidArgumentException('The property name must not start with a dollar sign ($).');
+            throw new InvalidArgumentException('The property name must not start with a dollar sign.');
         }
 
         $this->checkNestedFieldNames($newValue);
@@ -752,6 +751,7 @@ abstract class Model implements JsonSerializable
      * @internal
      * @return bool
      * @throws Exception
+     * @throws \MongoDB\Driver\Exception\Exception
      */
     private function upsert()
     {
@@ -765,20 +765,21 @@ abstract class Model implements JsonSerializable
             return true;
         }
 
+        if (static::$timestamps) {
+            $this->updateProperty('updated_at', new DateTime());
+
+            if (empty($this->properties['created_at'])) {
+                $this->updateProperty('created_at', new DateTime());
+            }
+        }
+
         $attempt = 1;
-        $now     = new DateTime();
 
         do {
             try {
                 $updateResult = $this->collection()->updateOne(
                     ['_id' => $id],
-                    [
-                        '$set'         => convertDateTimeObjects(array_merge(['updated_at' => $now], $this->updates)),
-                        '$setOnInsert' => [
-                            'created_at' => getBsonDateFromDateTime($now),
-                            'deleted_at' => null
-                        ]
-                    ],
+                    ['$set' => convertDateTimeObjects($this->updates)],
                     [
                         'upsert'       => true,
                         'writeConcern' => $this->getWriteConcern()
@@ -786,16 +787,8 @@ abstract class Model implements JsonSerializable
                 );
 
                 if ($updateResult->isAcknowledged() && ($updateResult->getUpsertedCount() + $updateResult->getMatchedCount() === 1)) {
-                    $this->persisted  = true;
-                    $this->updates    = [];
-                    $this->properties = array_merge(
-                        [
-                            'created_at' => $now,
-                            'deleted_at' => null
-                        ],
-                        $this->properties,
-                        ['updated_at' => $now]
-                    );
+                    $this->persisted = true;
+                    $this->updates   = [];
 
                     return true;
                 } else {

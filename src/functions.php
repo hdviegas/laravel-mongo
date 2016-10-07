@@ -170,7 +170,7 @@ if (!function_exists('sanitizeFieldKey')) {
         }
 
         if (!is_string($value)) {
-            throw new InvalidArgumentException('The field key must be a valid string or a number.');
+            throw new InvalidArgumentException('The field key must be a valid string or an integer.');
         }
 
         $value = trim($value);

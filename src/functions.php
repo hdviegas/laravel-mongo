@@ -158,19 +158,19 @@ if (!function_exists('sanitizeFieldKey')) {
     /**
      * Sanitizes a given value, making it safe for insertion into MongoDB as a field key.
      *
-     * @param  string $value
-     * @param  bool   $cleanUpKey
+     * @param  string|int $value
+     * @param  bool       $cleanUpKey
      * @return mixed
      * @throws InvalidArgumentException
      */
     function sanitizeFieldKey($value, $cleanUpKey = true)
     {
-        if (is_numeric($value)) {
+        if (is_int($value) && $value >= 0) {
             return $value;
         }
 
         if (!is_string($value)) {
-            throw new InvalidArgumentException('The field key must be a valid string.');
+            throw new InvalidArgumentException('The field key must be a valid string or a number.');
         }
 
         $value = trim($value);
@@ -179,7 +179,7 @@ if (!function_exists('sanitizeFieldKey')) {
             if ($cleanUpKey) {
                 $value = trim(preg_replace(['/\./u', '/^\$/u'], '', $value));
             } else {
-                throw new InvalidArgumentException('The field key must not contain any dots (.) or start with a dollar sign ($).');
+                throw new InvalidArgumentException('The field key must not contain any dots, or start with a dollar sign.');
             }
         }
 

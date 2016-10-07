@@ -46,7 +46,7 @@ abstract class Model implements JsonSerializable
     /**
      * @var Collection|null
      */
-    private $collection = null;
+    protected static $collection = null;
 
     /**
      * @var string|null
@@ -56,7 +56,7 @@ abstract class Model implements JsonSerializable
     /**
      * @var Database|null
      */
-    private $database = null;
+    protected static $database = null;
 
     /**
      * @var int The number of times to retry a write operation (`2` is the recommended value)
@@ -110,9 +110,9 @@ abstract class Model implements JsonSerializable
     public function __debugInfo()
     {
         return [
-            'collection'       => $this->collection,
+            'collection'       => static::$collection,
             'collectionName'   => static::$collectionName,
-            'database'         => $this->database,
+            'database'         => static::$database,
             'maxRetryAttempts' => static::$maxRetryAttempts,
             'persisted'        => $this->persisted,
             'properties'       => $this->properties,
@@ -171,25 +171,49 @@ abstract class Model implements JsonSerializable
      * @return Collection
      * @throws Exception
      */
-    public function collection()
+    public static function collection()
     {
-        if ($this->collection instanceof Collection) {
-            return $this->collection;
+        if (static::$collection instanceof Collection) {
+            return static::$collection;
         }
 
-        if (!is_string(static::$collectionName) || static::$collectionName === '') {
-            throw new Exception('The model "' . get_class($this) . '" is not associated with a database collection.');
+        if (!is_string(static::$collectionName)) {
+            throw new Exception('The model "' . get_called_class() . '" is not associated with a database collection.');
         }
 
-        $this->database = app('db')->getDatabase();
+        static::$collection = static::database()->selectCollection(static::$collectionName);
 
-        if ($this->database instanceof Database) {
-            $this->collection = $this->database->selectCollection(static::$collectionName);
+        return static::$collection;
+    }
 
-            return $this->collection;
+    /**
+     * Gets the database object associated with this model.
+     *
+     * @param  Database|null $newDatabase
+     * @return Database
+     * @throws Exception
+     */
+    public static function database(Database $newDatabase = null)
+    {
+        if ($newDatabase instanceof Database) {
+            static::$database = $newDatabase;
+
+            return static::$database;
         }
 
-        throw new Exception('The database object for the "' . get_class($this) . '" model is not properly configured.');
+        if (static::$database instanceof Database) {
+            return static::$database;
+        }
+
+        $database = app('db')->getDatabase();
+
+        if ($database instanceof Database) {
+            static::$database = $database;
+
+            return $database;
+        }
+
+        throw new Exception('The database object for the "' . get_called_class() . '" model is not properly configured.');
     }
 
     /**
@@ -265,21 +289,6 @@ abstract class Model implements JsonSerializable
     }
 
     /**
-     * Gets a new, pre-configured `MongoDB\Driver\WriteConcern` object.
-     *
-     * @return WriteConcern
-     * @throws InvalidArgumentException
-     */
-    protected function writeConcern()
-    {
-        if (static::$waitForJournal) {
-            return new WriteConcern(static::$writeConcern, 0, true);
-        }
-
-        return new WriteConcern(static::$writeConcern);
-    }
-
-    /**
      * Handle failed write operations.
      *
      * If you would like to log failed write attempts, this is the place to do it.
@@ -313,7 +322,7 @@ abstract class Model implements JsonSerializable
 
         do {
             try {
-                $deleteResult = $this->collection()->deleteOne(
+                $deleteResult = static::collection()->deleteOne(
                     ['_id' => $id],
                     ['writeConcern' => $this->writeConcern()]
                 );
@@ -374,7 +383,7 @@ abstract class Model implements JsonSerializable
 
         do {
             try {
-                $insertResult = $this->collection()->insertOne(
+                $insertResult = static::collection()->insertOne(
                     convertDateTimeObjects($this->properties),
                     ['writeConcern' => $this->writeConcern()]
                 );
@@ -439,6 +448,80 @@ abstract class Model implements JsonSerializable
     }
 
     /**
+     * Gets a new instance of the model.
+     *
+     * Override this method if you add required parameters to the model's constructor, or if you have to pre-process
+     * the attributes before instantiating the model instance.
+     *
+     * @param  array $attributes
+     * @return Model
+     */
+    public static function newInstance(array $attributes = [])
+    {
+        $instance = new static();
+        $instance->fill($attributes);
+
+        return $instance;
+    }
+
+    /**
+     * Prepares a new update, and optimizes any related, previous updates.
+     *
+     * @internal
+     * @param  string $field
+     * @param  mixed  $value
+     * @throws InvalidArgumentException
+     */
+    private function prepareUpdate($field, $value)
+    {
+        if (!is_string($field)) {
+            throw new InvalidArgumentException('The field name must be a valid string.');
+        }
+
+        $fieldPath = explode('.', $field);
+        array_pop($fieldPath);
+
+        $finalField    = $field;
+        $finalValue    = $value;
+        $updatedFields = array_keys($this->updates);
+
+        if (!empty($fieldPath)) {
+            $parentField      = null;
+            $parentProperties = $this->properties;
+
+            foreach ($fieldPath as $i => $part) {
+                $checkpoint       = count($parentProperties) > 1;
+                $parentProperties = $parentProperties[$part];
+
+                if ($parentField === null) {
+                    $parentField = $part;
+                } else {
+                    $parentField .= '.' . $part;
+                }
+
+                if (in_array($parentField, $updatedFields)) {
+                    $finalField = $parentField;
+                    $finalValue = $parentProperties;
+                    break;
+                } elseif ($i === 0 || $checkpoint) {
+                    $finalField = $parentField;
+                    $finalValue = $parentProperties;
+                }
+            }
+
+            unset($parentProperties);
+        }
+
+        foreach ($this->updates as $updateField => $updateValue) {
+            if (strpos($updateField, $finalField) === 0) {
+                unset($this->updates[$updateField]);
+            }
+        }
+
+        $this->updates[$finalField] = $finalValue;
+    }
+
+    /**
      * Restores the object if it has been previously soft deleted.
      *
      * @return bool
@@ -461,7 +544,7 @@ abstract class Model implements JsonSerializable
 
         do {
             try {
-                $updateResult = $this->collection()->updateOne(
+                $updateResult = static::collection()->updateOne(
                     ['_id' => $id],
                     ['$unset' => ['deleted_at' => '']],
                     ['writeConcern' => $this->writeConcern()]
@@ -539,74 +622,6 @@ abstract class Model implements JsonSerializable
     }
 
     /**
-     * Sets the database object this model should use for its database-backed operations.
-     *
-     * @param Database $database
-     */
-    public function setDatabase(Database $database)
-    {
-        $this->collection = null;
-        $this->database   = $database;
-    }
-
-    /**
-     * Prepares a new update, and optimizes any related, previous updates.
-     *
-     * @internal
-     * @param  string $field
-     * @param  mixed  $value
-     * @throws InvalidArgumentException
-     */
-    private function prepareUpdate($field, $value)
-    {
-        if (!is_string($field)) {
-            throw new InvalidArgumentException('The field name must be a valid string.');
-        }
-
-        $fieldPath = explode('.', $field);
-        array_pop($fieldPath);
-
-        $finalField    = $field;
-        $finalValue    = $value;
-        $updatedFields = array_keys($this->updates);
-
-        if (!empty($fieldPath)) {
-            $parentField      = null;
-            $parentProperties = $this->properties;
-
-            foreach ($fieldPath as $i => $part) {
-                $checkpoint       = count($parentProperties) > 1;
-                $parentProperties = $parentProperties[$part];
-
-                if ($parentField === null) {
-                    $parentField = $part;
-                } else {
-                    $parentField .= '.' . $part;
-                }
-
-                if (in_array($parentField, $updatedFields)) {
-                    $finalField = $parentField;
-                    $finalValue = $parentProperties;
-                    break;
-                } elseif ($i === 0 || $checkpoint) {
-                    $finalField = $parentField;
-                    $finalValue = $parentProperties;
-                }
-            }
-
-            unset($parentProperties);
-        }
-
-        foreach ($this->updates as $updateField => $updateValue) {
-            if (strpos($updateField, $finalField) === 0) {
-                unset($this->updates[$updateField]);
-            }
-        }
-
-        $this->updates[$finalField] = $finalValue;
-    }
-
-    /**
      * Soft deletes the object.
      *
      * @internal
@@ -632,7 +647,7 @@ abstract class Model implements JsonSerializable
             try {
                 $now = new DateTime();
 
-                $updateResult = $this->collection()->updateOne(
+                $updateResult = static::collection()->updateOne(
                     ['_id' => $id],
                     ['$set' => ['deleted_at' => getBsonDateFromDateTime($now)]],
                     ['writeConcern' => $this->writeConcern()]
@@ -777,7 +792,7 @@ abstract class Model implements JsonSerializable
 
         do {
             try {
-                $updateResult = $this->collection()->updateOne(
+                $updateResult = static::collection()->updateOne(
                     ['_id' => $id],
                     ['$set' => convertDateTimeObjects($this->updates)],
                     [
@@ -813,16 +828,17 @@ abstract class Model implements JsonSerializable
     }
 
     /**
-     * Gets a new model instance with a pre-configured database object.
+     * Gets a new, pre-configured `MongoDB\Driver\WriteConcern` object.
      *
-     * @param  Database $database
-     * @return Model
+     * @return WriteConcern
+     * @throws InvalidArgumentException
      */
-    public static function withConnection(Database $database)
+    protected function writeConcern()
     {
-        $instance = new static();
-        $instance->setDatabase($database);
+        if (static::$waitForJournal) {
+            return new WriteConcern(static::$writeConcern, 0, true);
+        }
 
-        return $instance;
+        return new WriteConcern(static::$writeConcern);
     }
 }

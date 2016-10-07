@@ -270,7 +270,7 @@ abstract class Model implements JsonSerializable
      * @return WriteConcern
      * @throws InvalidArgumentException
      */
-    protected function getWriteConcern()
+    protected function writeConcern()
     {
         if (static::$waitForJournal) {
             return new WriteConcern(static::$writeConcern, 0, true);
@@ -315,7 +315,7 @@ abstract class Model implements JsonSerializable
             try {
                 $deleteResult = $this->collection()->deleteOne(
                     ['_id' => $id],
-                    ['writeConcern' => $this->getWriteConcern()]
+                    ['writeConcern' => $this->writeConcern()]
                 );
 
                 if ($deleteResult->isAcknowledged()) {
@@ -376,12 +376,12 @@ abstract class Model implements JsonSerializable
             try {
                 $insertResult = $this->collection()->insertOne(
                     convertDateTimeObjects($this->properties),
-                    ['writeConcern' => $this->getWriteConcern()]
+                    ['writeConcern' => $this->writeConcern()]
                 );
 
                 if ($insertResult->isAcknowledged() && $insertResult->getInsertedCount() === 1) {
-                    $this->persisted  = true;
-                    $this->updates    = [];
+                    $this->persisted = true;
+                    $this->updates   = [];
 
                     return true;
                 } else {
@@ -464,7 +464,7 @@ abstract class Model implements JsonSerializable
                 $updateResult = $this->collection()->updateOne(
                     ['_id' => $id],
                     ['$unset' => ['deleted_at' => '']],
-                    ['writeConcern' => $this->getWriteConcern()]
+                    ['writeConcern' => $this->writeConcern()]
                 );
 
                 if ($updateResult->isAcknowledged() && $updateResult->getMatchedCount() === 1) {
@@ -635,7 +635,7 @@ abstract class Model implements JsonSerializable
                 $updateResult = $this->collection()->updateOne(
                     ['_id' => $id],
                     ['$set' => ['deleted_at' => getBsonDateFromDateTime($now)]],
-                    ['writeConcern' => $this->getWriteConcern()]
+                    ['writeConcern' => $this->writeConcern()]
                 );
 
                 if ($updateResult->isAcknowledged() && $updateResult->getMatchedCount() === 1) {
@@ -782,7 +782,7 @@ abstract class Model implements JsonSerializable
                     ['$set' => convertDateTimeObjects($this->updates)],
                     [
                         'upsert'       => true,
-                        'writeConcern' => $this->getWriteConcern()
+                        'writeConcern' => $this->writeConcern()
                     ]
                 );
 

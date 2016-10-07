@@ -187,6 +187,19 @@ abstract class Model implements JsonSerializable
     }
 
     /**
+     * Gets the number of model objects that matches the given filter.
+     *
+     * @param  array $filter
+     * @param  array $options
+     * @return int
+     * @throws Exception
+     */
+    public static function count(array $filter = [], array $options = [])
+    {
+        return static::collection()->count($filter, $options);
+    }
+
+    /**
      * Gets the database object associated with this model.
      *
      * @param  Database|null $newDatabase
@@ -243,6 +256,58 @@ abstract class Model implements JsonSerializable
         foreach ($attributes as $property => $value) {
             $this->updateProperty($property, $value, true);
         }
+    }
+
+    /**
+     * Finds and returns all the model objects that matches the given filter.
+     *
+     * @param  array $filter
+     * @param  array $options
+     * @return Model[]
+     * @throws Exception
+     */
+    public static function find(array $filter, array $options = [])
+    {
+        $cursor = static::collection()->find($filter, $options);
+        $models = [];
+
+        foreach ($cursor as $document) {
+            $models[] = static::newInstance($document);
+        }
+
+        return $models;
+    }
+
+    /**
+     * Finds and returns the model object that matches the given ID.
+     *
+     * @param  mixed $id
+     * @return Model|null
+     * @throws Exception
+     */
+    public static function findById($id)
+    {
+        return static::findOne(['_id' => $id]);
+    }
+
+    /**
+     * Finds and returns the model object that matches the given filter.
+     *
+     * @param  array $filter
+     * @param  array $options
+     * @return Model|null
+     * @throws Exception
+     */
+    public static function findOne(array $filter, array $options = [])
+    {
+        $document = static::collection()->findOne($filter, $options);
+        $model    = null;
+
+        if (!empty($document)) {
+            $model = static::newInstance($document);
+        }
+
+        return $model;
     }
 
     /**

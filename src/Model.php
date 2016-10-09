@@ -187,7 +187,7 @@ abstract class Model implements JsonSerializable
     }
 
     /**
-     * Gets the number of model objects that matches the given filter.
+     * Gets the number of objects that matches the given filter.
      *
      * @param  array $filter
      * @param  array $options
@@ -246,6 +246,44 @@ abstract class Model implements JsonSerializable
     }
 
     /**
+     * Deletes all the objects that matches the given filter.
+     *
+     * @param  array $filter
+     * @param  array $options
+     * @return int|bool The number of deleted documents. False, if the operation was not acknowledged.
+     * @throws Exception
+     */
+    public static function deleteMany(array $filter = [], array $options = [])
+    {
+        $result = static::collection()->deleteMany($filter, $options);
+        
+        if ($result->isAcknowledged()) {
+            return $result->getDeletedCount();
+        }
+
+        return false;
+    }
+
+    /**
+     * Deletes the first object that matches the given filter.
+     *
+     * @param  array $filter
+     * @param  array $options
+     * @return int|bool The number of deleted documents. False, if the operation was not acknowledged.
+     * @throws Exception
+     */
+    public static function deleteOne(array $filter = [], array $options = [])
+    {
+        $result = static::collection()->deleteOne($filter, $options);
+
+        if ($result->isAcknowledged()) {
+            return $result->getDeletedCount();
+        }
+
+        return false;
+    }
+
+    /**
      * Populates the object's properties from an array of attributes.
      *
      * @param  array $attributes
@@ -259,7 +297,7 @@ abstract class Model implements JsonSerializable
     }
 
     /**
-     * Finds and returns all the model objects that matches the given filter.
+     * Finds and returns all the objects that matches the given filter.
      *
      * @param  array $filter
      * @param  array $options
@@ -279,7 +317,7 @@ abstract class Model implements JsonSerializable
     }
 
     /**
-     * Finds and returns the model object that matches the given ID.
+     * Finds and returns the object that matches the given ID.
      *
      * @param  mixed $id
      * @return Model|null
@@ -291,7 +329,7 @@ abstract class Model implements JsonSerializable
     }
 
     /**
-     * Finds and returns the model object that matches the given filter.
+     * Finds and returns the object that matches the given filter.
      *
      * @param  array $filter
      * @param  array $options

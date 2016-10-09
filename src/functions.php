@@ -6,6 +6,36 @@ use MongoDB\BSON\ObjectID;
 use MongoDB\BSON\Timestamp;
 use MongoDB\BSON\UTCDateTime;
 
+if (!function_exists('checkNestedFieldNames')) {
+    /**
+     * Checks nested field names of an object, making sure they only contain valid characters.
+     *
+     * @param  mixed $object
+     * @param  int   $nestingLevel
+     * @throws RuntimeException
+     */
+    function checkNestedFieldNames($object, $nestingLevel = 0)
+    {
+        $nestingLevel++;
+
+        if ($nestingLevel > 10) {
+            throw new RuntimeException('The object is nested too deep.');
+        }
+
+        if (is_array($object) || is_object($object)) {
+            foreach ($object as $key => $value) {
+                if (is_string($key) && (strpos($key, '.') !== false || trim($key)[0] === '$')) {
+                    throw new RuntimeException('Nested field names must not contain any dots, or start with a dollar sign.');
+                }
+
+                if (is_array($value) || is_object($value)) {
+                    checkNestedFieldNames($value, $nestingLevel);
+                }
+            }
+        }
+    }
+}
+
 if (!function_exists('convertBsonDateObjects')) {
     /**
      * Searches for and converts all `MongoDB\BSON\UTCDateTime` objects to `DateTime` objects.

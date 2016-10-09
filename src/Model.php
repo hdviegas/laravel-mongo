@@ -137,35 +137,6 @@ abstract class Model implements JsonSerializable
     }
 
     /**
-     * Checks nested field names, making sure they only contain valid characters.
-     *
-     * @internal
-     * @param  mixed $object
-     * @param  int   $nestingLevel
-     * @throws RuntimeException
-     */
-    private function checkNestedFieldNames($object, $nestingLevel = 0)
-    {
-        $nestingLevel++;
-
-        if ($nestingLevel > 10) {
-            throw new RuntimeException('The object is nested too deep.');
-        }
-
-        if (is_array($object) || is_object($object)) {
-            foreach ($object as $key => $value) {
-                if (is_string($key) && (strpos($key, '.') !== false || trim($key)[0] === '$')) {
-                    throw new RuntimeException('Nested field names must not contain any dots, or start with a dollar sign.');
-                }
-
-                if (is_array($value) || is_object($value)) {
-                    $this->checkNestedFieldNames($value, $nestingLevel);
-                }
-            }
-        }
-    }
-
-    /**
      * Gets the collection object associated with this model.
      *
      * @return Collection
@@ -401,7 +372,7 @@ abstract class Model implements JsonSerializable
      * @param Exception $e
      * @param int       $operation
      */
-    protected function handleFailedWrite(Exception $e, $operation)
+    protected static function handleFailedWrite(Exception $e, $operation)
     {
     }
 
@@ -427,7 +398,7 @@ abstract class Model implements JsonSerializable
             try {
                 $deleteResult = static::collection()->deleteOne(
                     ['_id' => $id],
-                    ['writeConcern' => $this->writeConcern()]
+                    ['writeConcern' => static::writeConcern()]
                 );
 
                 if ($deleteResult->isAcknowledged()) {
@@ -445,7 +416,7 @@ abstract class Model implements JsonSerializable
                 }
             } catch (Exception $e) {
                 if ($e instanceof MongoException) {
-                    $this->handleFailedWrite($e, self::OP_HARD_DELETE);
+                    static::handleFailedWrite($e, self::OP_HARD_DELETE);
 
                     if ($attempt === static::$maxRetryAttempts) {
                         throw $e;
@@ -488,7 +459,7 @@ abstract class Model implements JsonSerializable
             try {
                 $insertResult = static::collection()->insertOne(
                     convertDateTimeObjects($this->properties),
-                    ['writeConcern' => $this->writeConcern()]
+                    ['writeConcern' => static::writeConcern()]
                 );
 
                 if ($insertResult->isAcknowledged() && $insertResult->getInsertedCount() === 1) {
@@ -501,7 +472,7 @@ abstract class Model implements JsonSerializable
                 }
             } catch (Exception $e) {
                 if ($e instanceof MongoException) {
-                    $this->handleFailedWrite($e, self::OP_INSERT);
+                    static::handleFailedWrite($e, self::OP_INSERT);
 
                     if (strpos($e->getMessage(), '_id_ dup key') !== false) {
                         return true;
@@ -650,7 +621,7 @@ abstract class Model implements JsonSerializable
                 $updateResult = static::collection()->updateOne(
                     ['_id' => $id],
                     ['$unset' => ['deleted_at' => '']],
-                    ['writeConcern' => $this->writeConcern()]
+                    ['writeConcern' => static::writeConcern()]
                 );
 
                 if ($updateResult->isAcknowledged() && $updateResult->getMatchedCount() === 1) {
@@ -663,7 +634,7 @@ abstract class Model implements JsonSerializable
                 }
             } catch (Exception $e) {
                 if ($e instanceof MongoException) {
-                    $this->handleFailedWrite($e, self::OP_RESTORE);
+                    static::handleFailedWrite($e, self::OP_RESTORE);
 
                     if ($attempt === static::$maxRetryAttempts) {
                         throw $e;
@@ -753,7 +724,7 @@ abstract class Model implements JsonSerializable
                 $updateResult = static::collection()->updateOne(
                     ['_id' => $id],
                     ['$set' => ['deleted_at' => getBsonDateFromDateTime($now)]],
-                    ['writeConcern' => $this->writeConcern()]
+                    ['writeConcern' => static::writeConcern()]
                 );
 
                 if ($updateResult->isAcknowledged() && $updateResult->getMatchedCount() === 1) {
@@ -767,7 +738,7 @@ abstract class Model implements JsonSerializable
                 }
             } catch (Exception $e) {
                 if ($e instanceof MongoException) {
-                    $this->handleFailedWrite($e, self::OP_SOFT_DELETE);
+                    static::handleFailedWrite($e, self::OP_SOFT_DELETE);
 
                     if ($attempt === static::$maxRetryAttempts) {
                         throw $e;
@@ -818,7 +789,7 @@ abstract class Model implements JsonSerializable
             throw new InvalidArgumentException('The property name must not start with a dollar sign.');
         }
 
-        $this->checkNestedFieldNames($newValue);
+        checkNestedFieldNames($newValue);
 
         $newProperty  = &$this->properties;
         $oldValue     = null;
@@ -900,7 +871,7 @@ abstract class Model implements JsonSerializable
                     ['$set' => convertDateTimeObjects($this->updates)],
                     [
                         'upsert'       => true,
-                        'writeConcern' => $this->writeConcern()
+                        'writeConcern' => static::writeConcern()
                     ]
                 );
 
@@ -914,7 +885,7 @@ abstract class Model implements JsonSerializable
                 }
             } catch (Exception $e) {
                 if ($e instanceof MongoException) {
-                    $this->handleFailedWrite($e, self::OP_UPSERT);
+                    static::handleFailedWrite($e, self::OP_UPSERT);
 
                     if ($attempt === static::$maxRetryAttempts) {
                         throw $e;
@@ -936,7 +907,7 @@ abstract class Model implements JsonSerializable
      * @return WriteConcern
      * @throws InvalidArgumentException
      */
-    protected function writeConcern()
+    protected static function writeConcern()
     {
         if (static::$waitForJournal) {
             return new WriteConcern(static::$writeConcern, 0, true);

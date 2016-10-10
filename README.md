@@ -41,7 +41,7 @@ Lindelius\LaravelMongo\MongoDbServiceProvider::class,
 For Lumen installations, add the included service provider to the `bootstrap/app.php` file.
 
 ```php
-$app->register('Lindelius\LaravelMongo\MongoDbServiceProvider');
+$app->register(Lindelius\LaravelMongo\MongoDbServiceProvider::class);
 ```
 
 ## Usage

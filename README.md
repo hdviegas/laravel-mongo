@@ -10,7 +10,7 @@ Please note that this library is not intended to be a complete ORM and does not 
 In order to install this library, issue the following command from your Laravel/Lumen project's root folder:
 
 ```
-composer require "lindelius/laravel-mongo=^0.1"
+composer require "lindelius/laravel-mongo=^0.2"
 ```
 
 After installing the library, configure your database connection by adding and editing the following array to the `config/database.php` file.

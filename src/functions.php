@@ -184,6 +184,19 @@ if (!function_exists('getMongoDb')) {
     }
 }
 
+if (!function_exists('getTimestampFromBsonDate')) {
+    /**
+     * Converts a `MongoDB\BSON\UTCDateTime` object to a UNIX timestamp.
+     *
+     * @param  UTCDateTime $a_bsonDate
+     * @return int
+     */
+    function getTimestampFromBsonDate(UTCDateTime $a_bsonDate)
+    {
+        return (int) substr((string) $a_bsonDate, 0, -3);
+    }
+}
+
 if (!function_exists('sanitizeFieldKey')) {
     /**
      * Sanitizes a given value, making it safe for insertion into MongoDB as a field key.

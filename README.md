@@ -160,7 +160,7 @@ if ($jedi->save()) {
 As you can see in the example above, the abstract `Model` class overrides the `__get()` magic method, allowing you to access the object's field values like they are regular public properties.
 #### Instance methods
 ##### delete
-The `delete()` method allows you to delete the object from the MongoDB database. When successfully called, the `_id` field along with the automatic timestamp-fields (if used) will be unset. All other properties will still be available on the object, and they will also be prepared as "updates" in case you want to save the object again afterwards.
+The `delete()` method allows you to delete the object from the MongoDB database. When successfully called, the `_id` field along with the automatic timestamp fields (if used) will be unset. All other properties will still be available on the object, and they will also be prepared as "updates" in case you want to save the object again afterwards.
 
 ```php
 $masterYoda = new Jedi('Yoda');
@@ -181,14 +181,14 @@ This convenience method checks whether the object has been "soft" deleted. In or
 ##### isPersisted
 This convenience method checks whether the object has been previously saved to the database.
 ##### restore
-The `restore()` method restores the object if it has been previously "soft" deleted. Do note that if you pass `true` to the `delete()` method it will completely delete the object from the database, meaning you can no longer restore it. Don't forget that you can save it again, though, as long as you don't clear or delete the PHP object.
+The `restore()` method restores the object if it has previously been "soft" deleted. Do note, though, that if you pass `true` to the `delete()` method it will completely delete the object from the database, meaning you can no longer restore it. Don't forget that you can save it again, though, as long as you don't clear or delete the PHP object.
 ```php
 if ($objectUsingSoftDeletes->delete()) {
     echo 'The object has been soft deleted.';
-}
-
-if ($objectUsingSoftDeletes->restore()) {
-    echo 'The object has been restored.';
+    
+    if ($objectUsingSoftDeletes->restore()) {
+        echo 'The object has been restored.';
+    }
 }
 ```
 ##### save
@@ -222,7 +222,7 @@ $yodasDeleted = Jedi::deleteMany(['name' => 'Yoda']);
 $jedisDeleted = Jedi::deleteMany();
 ```
 ##### deleteOne
-This method deletes the first object that matches a given filter and then returns the number of objects that were deleted (hopefully 1). Just like with the `Model::deleteMany()` method, the filter defaults to an empty array, so if you want to delete a specific object you have to specify a filter.
+This method deletes the first object that matches a given filter and then returns the number of objects that were deleted (either 1 or 0). Just like with the `Model::deleteMany()` method, the filter defaults to an empty array, so if you want to delete a specific object you have to specify a filter.
 ```php
 if (Jedi::deleteOne() === 1) {
     echo 'A Jedi was deleted.';
@@ -243,7 +243,7 @@ $allJedis   = Jedi::find();
 $skywalkers = Jedi::find(['name' => ['$regex' => 'Skywalker']]);
 ```
 ##### findById
-This method finds an object by its primary ID. Usually this is a `MongoDB\BSON\ObjectID` object, but if you have overwritten the `getId()` method it can be almost anything.
+This method finds an object by its primary ID. Usually this is a `MongoDB\BSON\ObjectID` object.
 ```php
 /**
  * @var Jedi|null $yoda
@@ -255,7 +255,7 @@ if ($yoda === null) {
 }
 ```
 ##### findOne
-This method works just like `Model::findById()`, except that you can match on anything and not just the ID. If you want to find a specific object, make sure to specify a filter.
+This method works just like `Model::findById()`, except that you can match on anything and not just the primary ID. If you want to find a specific object, make sure to specify a filter.
 ```php
 /**
  * @var Jedi|null $yoda

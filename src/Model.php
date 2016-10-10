@@ -779,10 +779,6 @@ abstract class Model implements JsonSerializable
             throw new InvalidArgumentException('The property name must be a valid string.');
         }
 
-        if (preg_match('/[^0-9\.\s]/', $property) !== 1) {
-            throw new InvalidArgumentException('The property name must not be all numerical.');
-        }
-
         $property = trim($property);
 
         if ($property[0] === '$') {

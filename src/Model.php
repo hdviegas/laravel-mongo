@@ -7,11 +7,11 @@ use Exception;
 use InvalidArgumentException;
 use JsonSerializable;
 use MongoDB\BSON\ObjectID;
-use RuntimeException;
 use MongoDB\Collection;
 use MongoDB\Database;
-use MongoDB\Driver\WriteConcern;
 use MongoDB\Driver\Exception\Exception as MongoException;
+use MongoDB\Driver\WriteConcern;
+use RuntimeException;
 
 /**
  * Abstract model for MongoDB documents.
@@ -26,18 +26,22 @@ abstract class Model implements JsonSerializable
      * @var int OP_INSERT
      */
     const OP_INSERT = 0;
+
     /**
      * @var int OP_UPSERT
      */
     const OP_UPSERT = 1;
+
     /**
      * @var int OP_SOFT_DELETE
      */
     const OP_SOFT_DELETE = 2;
+
     /**
      * @var int OP_HARD_DELETE
      */
     const OP_HARD_DELETE = 3;
+
     /**
      * @var int OP_RESTORE
      */
@@ -137,6 +141,55 @@ abstract class Model implements JsonSerializable
     }
 
     /**
+     * Gets the object's updates as a bulk operation.
+     *
+     * @return array|null
+     */
+    public function asBulkOperation()
+    {
+        if (empty($this->updates) && $this->isPersisted()) {
+            return null;
+        }
+
+        $id = $this->getId();
+
+        if ($id === false) {
+            return null;
+        }
+
+        if ($id === null) {
+            if (static::$timestamps) {
+                $this->updateProperty('updated_at', new DateTime());
+                $this->updateProperty('created_at', new DateTime());
+            }
+
+            $this->updateProperty('_id', new ObjectID());
+
+            $this->persisted = true;
+
+            return ['insertOne' => [convertDateTimeObjects($this->properties)]];
+        } else {
+            if (static::$timestamps) {
+                $this->updateProperty('updated_at', new DateTime());
+
+                if (empty($this->properties['created_at'])) {
+                    $this->updateProperty('created_at', new DateTime());
+                }
+            }
+
+            $this->persisted = true;
+
+            return [
+                'updateOne' => [
+                    ['_id' => $id],
+                    ['$set' => convertDateTimeObjects($this->updates)],
+                    ['upsert' => true]
+                ]
+            ];
+        }
+    }
+
+    /**
      * Gets the collection object associated with this model.
      *
      * @return Collection
@@ -227,7 +280,7 @@ abstract class Model implements JsonSerializable
     public static function deleteMany(array $filter = [], array $options = [])
     {
         $result = static::collection()->deleteMany($filter, $options);
-        
+
         if ($result->isAcknowledged()) {
             return $result->getDeletedCount();
         }

@@ -63,7 +63,7 @@ abstract class Model implements JsonSerializable
     protected static $database = null;
 
     /**
-     * @var int The number of times to retry a write operation (`2` is the recommended value)
+     * @var int The number of times to retry a write operation (2 is the recommended value)
      */
     protected static $maxRetryAttempts = 2;
 
@@ -951,7 +951,7 @@ abstract class Model implements JsonSerializable
     }
 
     /**
-     * Gets a new, pre-configured `MongoDB\Driver\WriteConcern` object.
+     * Gets a new, pre-configured write concern object.
      *
      * @return WriteConcern
      * @throws InvalidArgumentException

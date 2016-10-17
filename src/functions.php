@@ -1,10 +1,10 @@
 <?php
 
-use MongoDB\Client;
-use MongoDB\Database;
 use MongoDB\BSON\ObjectID;
 use MongoDB\BSON\Timestamp;
 use MongoDB\BSON\UTCDateTime;
+use MongoDB\Client;
+use MongoDB\Database;
 
 if (!function_exists('checkNestedFieldNames')) {
     /**

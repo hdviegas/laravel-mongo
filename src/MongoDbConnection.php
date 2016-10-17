@@ -12,8 +12,8 @@ use MongoDB\Database;
  * Class MongoDbConnection
  *
  * @author  Tom Lindelius <tom.lindelius@gmail.com>
- * @version 0.1
  * @package Lindelius\LaravelMongo
+ * @version 0.1
  */
 class MongoDbConnection extends Connection
 {
@@ -137,8 +137,8 @@ class MongoDbConnection extends Connection
      */
     public function setDatabase($database)
     {
-    	$this->database      = $database;
-    	$this->mongoDatabase = $this->mongoClient->selectDatabase($database);
+        $this->database      = $database;
+        $this->mongoDatabase = $this->mongoClient->selectDatabase($database);
     }
 
     /**
@@ -146,12 +146,12 @@ class MongoDbConnection extends Connection
      *
      * @param  string $database
      * @return string
-     * @see   MongoDbConnection::setDatabase()
+     * @see    MongoDbConnection::setDatabase()
      */
     public function setDatabaseName($database)
     {
-    	$this->setDatabase($database);
+        $this->setDatabase($database);
 
-    	return $database;
+        return $database;
     }
 }

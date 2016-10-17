@@ -157,6 +157,8 @@ abstract class Model implements JsonSerializable
             return null;
         }
 
+        $bulkOperation = null;
+
         if ($id === null) {
             if (static::$timestamps) {
                 $this->updateProperty('updated_at', new DateTime());
@@ -165,9 +167,11 @@ abstract class Model implements JsonSerializable
 
             $this->updateProperty('_id', new ObjectID());
 
-            $this->persisted = true;
-
-            return ['insertOne' => [convertDateTimeObjects($this->properties)]];
+            $bulkOperation = [
+                'insertOne' => [
+                    convertDateTimeObjects($this->updates)
+                ]
+            ];
         } else {
             if (static::$timestamps) {
                 $this->updateProperty('updated_at', new DateTime());
@@ -177,9 +181,7 @@ abstract class Model implements JsonSerializable
                 }
             }
 
-            $this->persisted = true;
-
-            return [
+            $bulkOperation = [
                 'updateOne' => [
                     ['_id' => $id],
                     ['$set' => convertDateTimeObjects($this->updates)],
@@ -187,6 +189,11 @@ abstract class Model implements JsonSerializable
                 ]
             ];
         }
+
+        $this->persisted = true;
+        $this->updates   = [];
+
+        return $bulkOperation;
     }
 
     /**
@@ -504,14 +511,14 @@ abstract class Model implements JsonSerializable
             $this->updateProperty('created_at', new DateTime());
         }
 
-        $this->properties['_id'] = new ObjectID();
+        $this->updateProperty('_id', new ObjectID());
 
         $attempt = 1;
 
         do {
             try {
                 $insertResult = static::collection()->insertOne(
-                    convertDateTimeObjects($this->properties),
+                    convertDateTimeObjects($this->updates),
                     ['writeConcern' => static::writeConcern()]
                 );
 

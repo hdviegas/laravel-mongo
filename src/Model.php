@@ -462,7 +462,10 @@ abstract class Model implements JsonSerializable
                 );
 
                 if ($deleteResult->isAcknowledged()) {
-                    unset($this->properties['_id']);
+                    if ($this->properties['_id'] instanceof ObjectID) {
+                        unset($this->properties['_id']);
+                    }
+
                     unset($this->properties['created_at']);
                     unset($this->properties['deleted_at']);
                     unset($this->properties['updated_at']);

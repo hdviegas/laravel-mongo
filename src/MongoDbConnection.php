@@ -18,11 +18,15 @@ use MongoDB\Database;
 class MongoDbConnection extends Connection
 {
     /**
+     * The MongoDB client instance.
+     *
      * @var Client
      */
     protected $mongoClient;
 
     /**
+     * The MongoDB database instance.
+     *
      * @var Database
      */
     protected $mongoDatabase;
@@ -100,7 +104,7 @@ class MongoDbConnection extends Connection
     }
 
     /**
-     * Gets the connected MongoDB client instance.
+     * Gets the MongoDB client instance.
      *
      * @return Client
      */
@@ -121,7 +125,7 @@ class MongoDbConnection extends Connection
     }
 
     /**
-     * Gets the connected MongoDB database instance.
+     * Gets the MongoDB database instance.
      *
      * @return Database
      */
@@ -142,7 +146,7 @@ class MongoDbConnection extends Connection
     }
 
     /**
-     * Sets the database name for the connected MongoDB database.
+     * Connects to a given MongoDB database.
      *
      * @param  string $database
      * @return string

@@ -43,40 +43,54 @@ abstract class Model implements JsonSerializable
     protected static $maxRetryAttempts = 2;
 
     /**
+     * Whether the object is currently stored in the database.
+     *
      * @internal
-     * @var bool Whether the object is currently stored in the database
+     * @var bool
      */
     private $persisted = false;
 
     /**
+     * The objects's properties.
+     *
      * @internal
-     * @var array The objects's properties
+     * @var array
      */
     private $properties = [];
 
     /**
-     * @var bool Whether to use soft deletes
+     * Whether to use soft deletes for objects using this model.
+     *
+     * @var bool
      */
     protected static $softDeletes = false;
 
     /**
-     * @var bool Whether to automatically set timestamps
+     * Whether to automatically set timestamps on objects using this model.
+     *
+     * @var bool
      */
     protected static $timestamps = true;
 
     /**
+     * The updates to send to the database when saving the object.
+     *
      * @internal
-     * @var array The updates to make when saving the object
+     * @var array
      */
     private $updates = [];
 
     /**
-     * @var bool Whether to force the server to wait for the journal to be commited before acknowledging an operation
+     * Whether to force the server to wait for the journal to be commited before acknowledging an operation.
+     *
+     * @var bool
      */
     protected static $waitForJournal = false;
 
     /**
-     * @var int The write concern to use for the MongoDB operations
+     * The write concern to use for the database operations.
+     *
+     * @var int
      */
     protected static $writeConcern = 1;
 
@@ -597,8 +611,6 @@ abstract class Model implements JsonSerializable
      * Restores the object if it has been previously soft deleted.
      *
      * @return bool
-     * @throws Exception
-     * @throws \MongoDB\Driver\Exception\Exception
      */
     public function restore()
     {
@@ -686,8 +698,6 @@ abstract class Model implements JsonSerializable
      *
      * @internal
      * @return bool
-     * @throws Exception
-     * @throws \MongoDB\Driver\Exception\Exception
      */
     private function softDelete()
     {
@@ -809,8 +819,6 @@ abstract class Model implements JsonSerializable
      *
      * @internal
      * @return bool
-     * @throws Exception
-     * @throws \MongoDB\Driver\Exception\Exception
      */
     private function upsert()
     {

@@ -10,7 +10,7 @@ use Illuminate\Support\ServiceProvider;
  *
  * @author  Tom Lindelius <tom.lindelius@gmail.com>
  * @package Lindelius\LaravelMongo
- * @version 0.1
+ * @version 0.2
  */
 class MongoDbServiceProvider extends ServiceProvider
 {

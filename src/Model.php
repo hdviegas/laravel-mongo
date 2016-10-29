@@ -6,10 +6,10 @@ use DateTime;
 use Exception;
 use InvalidArgumentException;
 use JsonSerializable;
+use Lindelius\LaravelMongo\Events\FailedWriteOperation;
 use MongoDB\BSON\ObjectID;
 use MongoDB\Collection;
 use MongoDB\Database;
-use MongoDB\Driver\Exception\Exception as MongoException;
 use MongoDB\Driver\WriteConcern;
 use RuntimeException;
 
@@ -18,35 +18,10 @@ use RuntimeException;
  *
  * @author  Tom Lindelius <tom.lindelius@gmail.com>
  * @package Lindelius\LaravelMongo
- * @version 0.1
+ * @version 0.2
  */
 abstract class Model implements JsonSerializable
 {
-    /**
-     * @var int OP_INSERT
-     */
-    const OP_INSERT = 0;
-
-    /**
-     * @var int OP_UPSERT
-     */
-    const OP_UPSERT = 1;
-
-    /**
-     * @var int OP_SOFT_DELETE
-     */
-    const OP_SOFT_DELETE = 2;
-
-    /**
-     * @var int OP_HARD_DELETE
-     */
-    const OP_HARD_DELETE = 3;
-
-    /**
-     * @var int OP_RESTORE
-     */
-    const OP_RESTORE = 4;
-
     /**
      * @var Collection|null
      */
@@ -423,26 +398,10 @@ abstract class Model implements JsonSerializable
     }
 
     /**
-     * Handle failed write operations.
-     *
-     * If you would like to log failed write attempts, this is the place to do it.
-     * If you do not want to retry any write operations, you can override this function to stop the execution flow by
-     * rethrowing the exception.
-     *
-     * @param Exception $e
-     * @param int       $operation
-     */
-    protected static function handleFailedWrite(Exception $e, $operation)
-    {
-    }
-
-    /**
      * Completely deletes the object from the database.
      *
      * @internal
      * @return bool
-     * @throws Exception
-     * @throws \MongoDB\Driver\Exception\Exception
      */
     private function hardDelete()
     {
@@ -478,15 +437,7 @@ abstract class Model implements JsonSerializable
                     break;
                 }
             } catch (Exception $e) {
-                if ($e instanceof MongoException) {
-                    static::handleFailedWrite($e, self::OP_HARD_DELETE);
-
-                    if ($attempt === static::$maxRetryAttempts) {
-                        throw $e;
-                    }
-                } else {
-                    throw $e;
-                }
+                event(new FailedWriteOperation($e, $this));
             }
 
             $attempt++;
@@ -500,8 +451,6 @@ abstract class Model implements JsonSerializable
      *
      * @internal
      * @return bool
-     * @throws Exception
-     * @throws \MongoDB\Driver\Exception\Exception
      */
     private function insert()
     {
@@ -534,17 +483,11 @@ abstract class Model implements JsonSerializable
                     break;
                 }
             } catch (Exception $e) {
-                if ($e instanceof MongoException) {
-                    static::handleFailedWrite($e, self::OP_INSERT);
-
-                    if (strpos($e->getMessage(), '_id_ dup key') !== false) {
-                        return true;
-                    } elseif ($attempt === static::$maxRetryAttempts) {
-                        throw $e;
-                    }
-                } else {
-                    throw $e;
+                if (strpos($e->getMessage(), '_id_ dup key') !== false) {
+                    return true;
                 }
+
+                event(new FailedWriteOperation($e, $this));
             }
 
             $attempt++;
@@ -696,15 +639,7 @@ abstract class Model implements JsonSerializable
                     break;
                 }
             } catch (Exception $e) {
-                if ($e instanceof MongoException) {
-                    static::handleFailedWrite($e, self::OP_RESTORE);
-
-                    if ($attempt === static::$maxRetryAttempts) {
-                        throw $e;
-                    }
-                } else {
-                    throw $e;
-                }
+                event(new FailedWriteOperation($e, $this));
             }
 
             $attempt++;
@@ -800,15 +735,7 @@ abstract class Model implements JsonSerializable
                     break;
                 }
             } catch (Exception $e) {
-                if ($e instanceof MongoException) {
-                    static::handleFailedWrite($e, self::OP_SOFT_DELETE);
-
-                    if ($attempt === static::$maxRetryAttempts) {
-                        throw $e;
-                    }
-                } else {
-                    throw $e;
-                }
+                event(new FailedWriteOperation($e, $this));
             }
 
             $attempt++;
@@ -943,15 +870,7 @@ abstract class Model implements JsonSerializable
                     break;
                 }
             } catch (Exception $e) {
-                if ($e instanceof MongoException) {
-                    static::handleFailedWrite($e, self::OP_UPSERT);
-
-                    if ($attempt === static::$maxRetryAttempts) {
-                        throw $e;
-                    }
-                } else {
-                    throw $e;
-                }
+                event(new FailedWriteOperation($e, $this));
             }
 
             $attempt++;

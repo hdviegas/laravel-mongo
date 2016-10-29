@@ -13,7 +13,7 @@ use MongoDB\Database;
  *
  * @author  Tom Lindelius <tom.lindelius@gmail.com>
  * @package Lindelius\LaravelMongo
- * @version 0.1
+ * @version 0.2
  */
 class MongoDbConnection extends Connection
 {

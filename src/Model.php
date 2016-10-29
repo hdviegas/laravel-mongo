@@ -415,27 +415,23 @@ abstract class Model implements JsonSerializable
 
         do {
             try {
-                $deleteResult = static::collection()->deleteOne(
+                static::collection()->deleteOne(
                     ['_id' => $id],
                     ['writeConcern' => static::writeConcern()]
                 );
 
-                if ($deleteResult->isAcknowledged()) {
-                    if ($this->properties['_id'] instanceof ObjectID) {
-                        unset($this->properties['_id']);
-                    }
-
-                    unset($this->properties['created_at']);
-                    unset($this->properties['deleted_at']);
-                    unset($this->properties['updated_at']);
-
-                    $this->persisted = false;
-                    $this->updates   = $this->properties;
-
-                    return true;
-                } else {
-                    break;
+                if ($this->properties['_id'] instanceof ObjectID) {
+                    unset($this->properties['_id']);
                 }
+
+                unset($this->properties['created_at']);
+                unset($this->properties['deleted_at']);
+                unset($this->properties['updated_at']);
+
+                $this->persisted = false;
+                $this->updates   = $this->properties;
+
+                return true;
             } catch (Exception $e) {
                 event(new FailedWriteOperation($e, $this));
             }
@@ -469,19 +465,15 @@ abstract class Model implements JsonSerializable
 
         do {
             try {
-                $insertResult = static::collection()->insertOne(
+                static::collection()->insertOne(
                     convertDateTimeObjects($this->updates),
                     ['writeConcern' => static::writeConcern()]
                 );
 
-                if ($insertResult->isAcknowledged() && $insertResult->getInsertedCount() === 1) {
-                    $this->persisted = true;
-                    $this->updates   = [];
+                $this->persisted = true;
+                $this->updates   = [];
 
-                    return true;
-                } else {
-                    break;
-                }
+                return true;
             } catch (Exception $e) {
                 if (strpos($e->getMessage(), '_id_ dup key') !== false) {
                     return true;
@@ -624,20 +616,16 @@ abstract class Model implements JsonSerializable
 
         do {
             try {
-                $updateResult = static::collection()->updateOne(
+                static::collection()->updateOne(
                     ['_id' => $id],
                     ['$unset' => ['deleted_at' => '']],
                     ['writeConcern' => static::writeConcern()]
                 );
 
-                if ($updateResult->isAcknowledged() && $updateResult->getMatchedCount() === 1) {
-                    unset($this->properties['deleted_at']);
-                    unset($this->updates['deleted_at']);
+                unset($this->properties['deleted_at']);
+                unset($this->updates['deleted_at']);
 
-                    return true;
-                } else {
-                    break;
-                }
+                return true;
             } catch (Exception $e) {
                 event(new FailedWriteOperation($e, $this));
             }
@@ -719,21 +707,17 @@ abstract class Model implements JsonSerializable
             try {
                 $now = new DateTime();
 
-                $updateResult = static::collection()->updateOne(
+                static::collection()->updateOne(
                     ['_id' => $id],
                     ['$set' => ['deleted_at' => getBsonDateFromDateTime($now)]],
                     ['writeConcern' => static::writeConcern()]
                 );
 
-                if ($updateResult->isAcknowledged() && $updateResult->getMatchedCount() === 1) {
-                    $this->properties['deleted_at'] = $now;
+                $this->properties['deleted_at'] = $now;
 
-                    unset($this->updates['deleted_at']);
+                unset($this->updates['deleted_at']);
 
-                    return true;
-                } else {
-                    break;
-                }
+                return true;
             } catch (Exception $e) {
                 event(new FailedWriteOperation($e, $this));
             }
@@ -852,7 +836,7 @@ abstract class Model implements JsonSerializable
 
         do {
             try {
-                $updateResult = static::collection()->updateOne(
+                static::collection()->updateOne(
                     ['_id' => $id],
                     ['$set' => convertDateTimeObjects($this->updates)],
                     [
@@ -861,14 +845,10 @@ abstract class Model implements JsonSerializable
                     ]
                 );
 
-                if ($updateResult->isAcknowledged() && ($updateResult->getUpsertedCount() + $updateResult->getMatchedCount() === 1)) {
-                    $this->persisted = true;
-                    $this->updates   = [];
+                $this->persisted = true;
+                $this->updates   = [];
 
-                    return true;
-                } else {
-                    break;
-                }
+                return true;
             } catch (Exception $e) {
                 event(new FailedWriteOperation($e, $this));
             }

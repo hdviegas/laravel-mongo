@@ -6,12 +6,12 @@ use Exception;
 use Lindelius\LaravelMongo\Model;
 
 /**
- * Class FailedWriteOperation
+ * Class WriteOperationFailed
  *
  * @author  Tom Lindelius <tom.lindelius@vivamedia.se>
  * @version 0.2
  */
-class FailedWriteOperation
+class WriteOperationFailed
 {
     /**
      * The exception object that was thrown when the write operation failed.
@@ -30,7 +30,7 @@ class FailedWriteOperation
     private $model;
 
     /**
-     * Constructor for FailedWriteOperation objects.
+     * Constructor for WriteOperationFailed objects.
      *
      * @param Exception $exception
      * @param Model     $model

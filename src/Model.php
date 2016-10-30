@@ -6,7 +6,7 @@ use DateTime;
 use Exception;
 use InvalidArgumentException;
 use JsonSerializable;
-use Lindelius\LaravelMongo\Events\FailedWriteOperation;
+use Lindelius\LaravelMongo\Events\WriteOperationFailed;
 use MongoDB\BSON\ObjectID;
 use MongoDB\Collection;
 use MongoDB\Database;
@@ -447,7 +447,7 @@ abstract class Model implements JsonSerializable
 
                 return true;
             } catch (Exception $e) {
-                event(new FailedWriteOperation($e, $this));
+                event(new WriteOperationFailed($e, $this));
             }
 
             $attempt++;
@@ -493,7 +493,7 @@ abstract class Model implements JsonSerializable
                     return true;
                 }
 
-                event(new FailedWriteOperation($e, $this));
+                event(new WriteOperationFailed($e, $this));
             }
 
             $attempt++;
@@ -639,7 +639,7 @@ abstract class Model implements JsonSerializable
 
                 return true;
             } catch (Exception $e) {
-                event(new FailedWriteOperation($e, $this));
+                event(new WriteOperationFailed($e, $this));
             }
 
             $attempt++;
@@ -729,7 +729,7 @@ abstract class Model implements JsonSerializable
 
                 return true;
             } catch (Exception $e) {
-                event(new FailedWriteOperation($e, $this));
+                event(new WriteOperationFailed($e, $this));
             }
 
             $attempt++;
@@ -858,7 +858,7 @@ abstract class Model implements JsonSerializable
 
                 return true;
             } catch (Exception $e) {
-                event(new FailedWriteOperation($e, $this));
+                event(new WriteOperationFailed($e, $this));
             }
 
             $attempt++;

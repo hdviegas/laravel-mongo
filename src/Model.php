@@ -114,7 +114,7 @@ abstract class Model implements JsonSerializable
             'softDeletes'      => static::$softDeletes,
             'timestamps'       => static::$timestamps,
             'updates'          => $this->updates,
-            'writeConcern'     => $this->writeConcern()
+            'writeConcern'     => static::writeConcern()
         ];
     }
 

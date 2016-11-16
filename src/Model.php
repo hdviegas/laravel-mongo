@@ -38,7 +38,9 @@ abstract class Model implements JsonSerializable
     protected static $database = null;
 
     /**
-     * @var int The number of times to retry a write operation (2 is the recommended value)
+     * The maximum number of times to retry a write operation.
+     *
+     * @var int
      */
     protected static $maxRetryAttempts = 2;
 
@@ -112,8 +114,7 @@ abstract class Model implements JsonSerializable
             'softDeletes'      => static::$softDeletes,
             'timestamps'       => static::$timestamps,
             'updates'          => $this->updates,
-            'waitForJournal'   => static::$waitForJournal,
-            'writeConcern'     => static::$writeConcern
+            'writeConcern'     => $this->writeConcern()
         ];
     }
 

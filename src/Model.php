@@ -859,7 +859,7 @@ abstract class Model implements JsonSerializable
 
         do {
             try {
-                $updateOptions = ['writeConcern' => static::$writeConcern];
+                $updateOptions = ['writeConcern' => static::writeConcern()];
 
                 if (!$this->isPersisted()) {
                     $updateOptions['upsert'] = true;

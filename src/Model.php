@@ -3,6 +3,7 @@
 namespace Lindelius\LaravelMongo;
 
 use DateTime;
+use DB;
 use Exception;
 use InvalidArgumentException;
 use JsonSerializable;
@@ -18,24 +19,16 @@ use RuntimeException;
  *
  * @author  Tom Lindelius <tom.lindelius@gmail.com>
  * @package Lindelius\LaravelMongo
- * @version 0.2
+ * @version 0.3
  */
 abstract class Model implements JsonSerializable
 {
     /**
-     * @var Collection|null
-     */
-    protected static $collection = null;
-
-    /**
+     * The name of the collection associated with this model.
+     *
      * @var string|null
      */
     protected static $collectionName = null;
-
-    /**
-     * @var Database|null
-     */
-    protected static $database = null;
 
     /**
      * The maximum number of times to retry a write operation.
@@ -105,9 +98,8 @@ abstract class Model implements JsonSerializable
     public function __debugInfo()
     {
         return [
-            'collection'       => static::$collection,
             'collectionName'   => static::$collectionName,
-            'database'         => static::$database,
+            'database'         => static::database(),
             'maxRetryAttempts' => static::$maxRetryAttempts,
             'persisted'        => $this->persisted,
             'properties'       => $this->properties,
@@ -196,20 +188,14 @@ abstract class Model implements JsonSerializable
      */
     public static function collection()
     {
-        if (static::$collection instanceof Collection) {
-            return static::$collection;
-        }
-
-        if (!is_string(static::$collectionName)) {
+        if (empty(static::$collectionName) || !is_string(static::$collectionName)) {
             throw new Exception('The model "' . get_called_class() . '" is not associated with a database collection.');
         }
 
-        static::$collection = static::database()->selectCollection(
+        return static::database()->selectCollection(
             static::$collectionName,
             ['writeConcern' => static::writeConcern()]
         );
-
-        return static::$collection;
     }
 
     /**
@@ -228,27 +214,14 @@ abstract class Model implements JsonSerializable
     /**
      * Gets the database object associated with this model.
      *
-     * @param  Database|null $newDatabase
      * @return Database
      * @throws Exception
      */
-    public static function database(Database $newDatabase = null)
+    public static function database()
     {
-        if ($newDatabase instanceof Database) {
-            static::$database = $newDatabase;
-
-            return static::$database;
-        }
-
-        if (static::$database instanceof Database) {
-            return static::$database;
-        }
-
-        $database = app('db')->getDatabase();
+        $database = DB::connection('mongodb')->getDatabase();
 
         if ($database instanceof Database) {
-            static::$database = $database;
-
             return $database;
         }
 

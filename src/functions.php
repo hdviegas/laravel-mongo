@@ -188,12 +188,12 @@ if (!function_exists('getTimestampFromBsonDate')) {
     /**
      * Converts a `MongoDB\BSON\UTCDateTime` object to a UNIX timestamp.
      *
-     * @param  UTCDateTime $a_bsonDate
+     * @param  UTCDateTime $bsonDate
      * @return int
      */
-    function getTimestampFromBsonDate(UTCDateTime $a_bsonDate)
+    function getTimestampFromBsonDate(UTCDateTime $bsonDate)
     {
-        return (int) substr((string) $a_bsonDate, 0, -3);
+        return (int) substr((string) $bsonDate, 0, -3);
     }
 }
 

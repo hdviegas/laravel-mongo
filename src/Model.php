@@ -171,8 +171,6 @@ abstract class Model implements JsonSerializable
                 ]
             ];
         } else {
-            $updateOptions = !$this->isPersisted() ? ['upsert' => true] : [];
-
             if (static::$timestamps) {
                 $this->updateProperty('updated_at', new DateTime());
 
@@ -185,7 +183,7 @@ abstract class Model implements JsonSerializable
                 'updateOne' => [
                     ['_id' => $id],
                     ['$set' => convertDateTimeObjects($this->updates)],
-                    $updateOptions
+                    $this->isPersisted() ? [] : ['upsert' => true]
                 ]
             ];
         }

@@ -10,7 +10,7 @@ use RuntimeException;
 /**
  * Class BulkBuilder
  *
- * @author  Tom Lindelius <tom.lindelius@vivamedia.se>
+ * @author  Tom Lindelius <tom.lindelius@gmail.com>
  * @package Lindelius\LaravelMongo
  * @version 0.3
  */

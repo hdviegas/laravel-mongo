@@ -8,7 +8,8 @@ use Lindelius\LaravelMongo\Model;
 /**
  * Class WriteOperationFailed
  *
- * @author  Tom Lindelius <tom.lindelius@vivamedia.se>
+ * @author  Tom Lindelius <tom.lindelius@gmail.com>
+ * @package Lindelius\LaravelMongo
  * @version 0.2
  */
 class WriteOperationFailed

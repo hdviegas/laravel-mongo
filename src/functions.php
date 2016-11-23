@@ -122,12 +122,12 @@ if (!function_exists('getBsonDateFromDateTime')) {
     /**
      * Converts a `DateTime` object to a `MongoDB\BSON\UTCDateTime` object.
      *
-     * @param  DateTime $dateTime
+     * @param  DateTime $date
      * @return UTCDateTime
      */
-    function getBsonDateFromDateTime(DateTime $dateTime)
+    function getBsonDateFromDateTime(DateTime $date)
     {
-        $milliseconds = (float) substr((string) $dateTime->format('Uu'), 0, -3);
+        $milliseconds = (float) substr((string) $date->format('Uu'), 0, -3);
 
         return new UTCDateTime($milliseconds);
     }
@@ -188,12 +188,12 @@ if (!function_exists('getTimestampFromBsonDate')) {
     /**
      * Converts a `MongoDB\BSON\UTCDateTime` object to a UNIX timestamp.
      *
-     * @param  UTCDateTime $bsonDate
+     * @param  UTCDateTime $date
      * @return int
      */
-    function getTimestampFromBsonDate(UTCDateTime $bsonDate)
+    function getTimestampFromBsonDate(UTCDateTime $date)
     {
-        return (int) substr((string) $bsonDate, 0, -3);
+        return (int) substr((string) $date, 0, -3);
     }
 }
 

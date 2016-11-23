@@ -204,7 +204,10 @@ abstract class Model implements JsonSerializable
             throw new Exception('The model "' . get_called_class() . '" is not associated with a database collection.');
         }
 
-        static::$collection = static::database()->selectCollection(static::$collectionName);
+        static::$collection = static::database()->selectCollection(
+            static::$collectionName,
+            ['writeConcern' => static::writeConcern()]
+        );
 
         return static::$collection;
     }
@@ -432,10 +435,7 @@ abstract class Model implements JsonSerializable
 
         do {
             try {
-                static::collection()->deleteOne(
-                    ['_id' => $id],
-                    ['writeConcern' => static::writeConcern()]
-                );
+                static::collection()->deleteOne(['_id' => $id]);
 
                 if ($this->properties['_id'] instanceof ObjectID) {
                     unset($this->properties['_id']);
@@ -482,10 +482,7 @@ abstract class Model implements JsonSerializable
 
         do {
             try {
-                static::collection()->insertOne(
-                    convertDateTimeObjects($this->updates),
-                    ['writeConcern' => static::writeConcern()]
-                );
+                static::collection()->insertOne(convertDateTimeObjects($this->updates));
 
                 $this->persisted = true;
                 $this->updates   = [];
@@ -633,8 +630,7 @@ abstract class Model implements JsonSerializable
             try {
                 $result = static::collection()->updateOne(
                     ['_id' => $id],
-                    ['$unset' => ['deleted_at' => '']],
-                    ['writeConcern' => static::writeConcern()]
+                    ['$unset' => ['deleted_at' => '']]
                 );
 
                 unset($this->properties['deleted_at']);
@@ -728,8 +724,7 @@ abstract class Model implements JsonSerializable
 
                 $result = static::collection()->updateOne(
                     ['_id' => $id],
-                    ['$set' => ['deleted_at' => getBsonDateFromDateTime($now)]],
-                    ['writeConcern' => static::writeConcern()]
+                    ['$set' => ['deleted_at' => getBsonDateFromDateTime($now)]]
                 );
 
                 if ($result->isAcknowledged() && $result->getMatchedCount() === 0) {
@@ -859,16 +854,10 @@ abstract class Model implements JsonSerializable
 
         do {
             try {
-                $updateOptions = ['writeConcern' => static::writeConcern()];
-
-                if (!$this->isPersisted()) {
-                    $updateOptions['upsert'] = true;
-                }
-
                 $result = static::collection()->updateOne(
                     ['_id' => $id],
                     ['$set' => convertDateTimeObjects($this->updates)],
-                    $updateOptions
+                    $this->isPersisted() ? [] : ['upsert' => true]
                 );
 
                 if ($result->isAcknowledged() && $result->getMatchedCount() === 0) {

@@ -118,6 +118,7 @@ abstract class Model implements JsonSerializable
             'maxRetryAttempts' => static::$maxRetryAttempts,
             'persisted'        => $this->persisted,
             'properties'       => $this->properties,
+            'readPreference'   => static::readPreference(),
             'softDeletes'      => static::$softDeletes,
             'timestamps'       => static::$timestamps,
             'updates'          => $this->updates,

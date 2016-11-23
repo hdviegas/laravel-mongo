@@ -136,6 +136,16 @@ class BulkBuilder
     }
 
     /**
+     * Gets all the queued-up bulk operations.
+     *
+     * @return array
+     */
+    public function getOperations()
+    {
+        return $this->operations;
+    }
+
+    /**
      * Adds a "insert one" bulk operation.
      *
      * @param array $document

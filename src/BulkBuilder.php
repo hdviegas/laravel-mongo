@@ -2,6 +2,7 @@
 
 namespace Lindelius\LaravelMongo;
 
+use Exception;
 use MongoDB\BulkWriteResult;
 use MongoDB\Collection;
 use RuntimeException;
@@ -123,7 +124,7 @@ class BulkBuilder
      *
      * @param  array $options
      * @return BulkWriteResult
-     * @throws RuntimeException
+     * @throws Exception
      */
     public function execute(array $options = [])
     {
@@ -131,7 +132,7 @@ class BulkBuilder
             throw new RuntimeException('Tried to execute the bulk write on an invalid collection.');
         }
 
-        $this->collection->bulkWrite($this->operations, $options);
+        return $this->collection->bulkWrite($this->operations, $options);
     }
 
     /**

@@ -11,6 +11,7 @@ use Lindelius\LaravelMongo\Events\WriteOperationFailed;
 use MongoDB\BSON\ObjectID;
 use MongoDB\Collection;
 use MongoDB\Database;
+use MongoDB\Driver\ReadPreference;
 use MongoDB\Driver\WriteConcern;
 use RuntimeException;
 
@@ -54,6 +55,20 @@ abstract class Model implements JsonSerializable
     private $properties = [];
 
     /**
+     * The tagged server sets to read from. An empty array means "all".
+     *
+     * @var array
+     */
+    protected static $readFromSets = [];
+
+    /**
+     * The read preference to use for the database read operations.
+     *
+     * @var int
+     */
+    protected static $readPreference = ReadPreference::RP_PRIMARY;
+
+    /**
      * Whether to use soft deletes for objects using this model.
      *
      * @var bool
@@ -83,7 +98,7 @@ abstract class Model implements JsonSerializable
     protected static $waitForJournal = false;
 
     /**
-     * The write concern to use for the database operations.
+     * The write concern to use for the database write operations.
      *
      * @var int
      */
@@ -192,10 +207,10 @@ abstract class Model implements JsonSerializable
             throw new Exception('The model "' . get_called_class() . '" is not associated with a database collection.');
         }
 
-        return static::database()->selectCollection(
-            static::$collectionName,
-            ['writeConcern' => static::writeConcern()]
-        );
+        return static::database()->selectCollection(static::$collectionName, [
+            'readPreference' => static::readPreference(),
+            'writeConcern'   => static::writeConcern()
+        ]);
     }
 
     /**
@@ -578,6 +593,17 @@ abstract class Model implements JsonSerializable
         }
 
         $this->updates[$finalField] = $finalValue;
+    }
+
+    /**
+     * Gets a new, pre-configured read preference object.
+     *
+     * @return ReadPreference
+     * @throws InvalidArgumentException
+     */
+    protected static function readPreference()
+    {
+        return new ReadPreference(static::$readPreference, static::$readFromSets);
     }
 
     /**

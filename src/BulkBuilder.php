@@ -10,12 +10,12 @@ use RuntimeException;
  * Class BulkBuilder
  *
  * @author  Tom Lindelius <tom.lindelius@vivamedia.se>
- * @version 2016-11-23
+ * @version 0.3
  */
 class BulkBuilder
 {
     /**
-     * The collection on which we should execute the bulk write.
+     * The collection on which to execute the bulk write.
      *
      * @var Collection|null
      */
@@ -37,9 +37,12 @@ class BulkBuilder
 
     /**
      * Constructor for BulkBuilder objects.
+     *
+     * @param Collection $collection
      */
-    public function __construct()
+    public function __construct(Collection $collection = null)
     {
+        $this->collection = $collection;
     }
 
     /**
@@ -92,5 +95,15 @@ class BulkBuilder
         }
 
         $this->collection->bulkWrite($this->operations, $options);
+    }
+
+    /**
+     * Sets the collection on which to execute the bulk write.
+     *
+     * @param Collection $collection
+     */
+    public function setCollection(Collection $collection)
+    {
+        $this->collection = $collection;
     }
 }

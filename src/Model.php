@@ -32,6 +32,13 @@ abstract class Model implements JsonSerializable
     protected static $collectionName = null;
 
     /**
+     * The name of the connection.
+     *
+     * @var string
+     */
+    protected static $connectionName = 'mongodb';
+
+    /**
      * The maximum number of times to retry a write operation.
      *
      * @var int
@@ -114,7 +121,7 @@ abstract class Model implements JsonSerializable
     {
         return [
             'collectionName'   => static::$collectionName,
-            'database'         => static::database(),
+            'connectionName'   => static::$connectionName,
             'maxRetryAttempts' => static::$maxRetryAttempts,
             'persisted'        => $this->persisted,
             'properties'       => $this->properties,
@@ -233,7 +240,7 @@ abstract class Model implements JsonSerializable
      */
     public static function database()
     {
-        $database = DB::connection('mongodb')->getDatabase();
+        $database = DB::connection(static::$connectionName)->getDatabase();
 
         if ($database instanceof Database) {
             return $database;

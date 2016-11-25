@@ -85,7 +85,10 @@ foreach ($jedis as $jedi) {
     $bulk->add($jedi);
 }
 
-$bulk->execute();
+/**
+ * @var MongoDB\BulkWriteResult $result
+ */
+$result = $bulk->execute();
 ```
 
 The class also includes helper functions for adding custom write operations (i.e. operations that aren't taken directly from a `Model` object). These operations can be added to the bulk using the `BulkBuilder::deleteMany()`, `BulkBuilder::deleteOne()`, `BulkBuilder::insertOne()`, `BulkBuilder::replaceOne()`, `BulkBuilder::updateMany()`, and `BulkBuilder::updateOne()` methods. In this case you will have to manually inject the collection into the `BulkBuilder`, either via its constructor or via the `BulkBuilder::setCollection()` method.
@@ -106,6 +109,11 @@ Like previously mentioned, this library also includes an abstract model that you
 ```php
 use Lindelius\LaravelMongo\Model;
 
+/**
+ * Class Jedi
+ *
+ * @property string $name
+ */
 class Jedi extends Model
 {
     /**
@@ -114,51 +122,6 @@ class Jedi extends Model
      * @var string
      */
     protected static $collectionName = 'jedi';
-
-    /**
-     * Constructor for Jedi objects.
-     *
-     * @param  string $name
-     * @throws Exception
-     */
-    public function __construct($name)
-    {
-        $this->setName($name);
-    }
-    
-    /**
-     * Gets a new instance of the model.
-     *
-     * We have to override this method since we have added required 
-     * parameters to the Jedi constructor.
-     *
-     * @param  array $attributes
-     * @return Jedi
-     */
-    public static function newInstance(array $attributes = [])
-    {
-        $instance = new static(@$attributes['name']);
-        
-        unset($attributes['name']);
-        $instance->fill($attributes);
-        
-        return $instance;
-    }
-    
-    /**
-     * Sets the name of the Jedi.
-     *
-     * @param  string $name
-     * @throws Exception
-     */
-    public function setName($name)
-    {
-        if (!is_string($name)) {
-            throw new InvalidArgumentException('Invalid name.');
-        }
-    
-        $this->updateProperty('name', $name);
-    }
 }
 
 ```
@@ -166,7 +129,8 @@ class Jedi extends Model
 After having extended the `Model` class and added the necessary properties (`Model::$collectionName`) we can now manage our Jedis with ease.
 
 ```php
-$jedi = new Jedi('Anakin Skywalker');
+$jedi = new Jedi();
+$jedi->name = 'Anakin Skywalker';
 
 if ($jedi->save()) {
     echo 'Uh, I think we just made a horrible decision...';
@@ -176,7 +140,7 @@ if ($jedi->save()) {
 }
 ```
 
-As you can see in the example above the abstract `Model` class overrides the `__get()` magic method, allowing you to access the object's field values just like if they were regular public properties.
+As you can see in the example above the abstract `Model` class overrides the magic `__get()` and `__set()` methods, allowing you to assign and access the object's field values just like if they were regular public properties.
 
 #### Instance Methods
 

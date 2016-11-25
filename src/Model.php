@@ -147,6 +147,18 @@ abstract class Model implements Jsonable, JsonSerializable
     }
 
     /**
+     * Sets a new value for a given property.
+     *
+     * @param  string $property
+     * @param  mixed  $newValue
+     * @see    http://php.net/manual/en/language.oop5.overloading.php#object.set
+     */
+    public function __set($property, $newValue)
+    {
+        $this->updateProperty($property, $newValue);
+    }
+
+    /**
      * Gets the object's updates as a bulk operation.
      *
      * @return array|null

@@ -148,7 +148,8 @@ As you can see in the example above the abstract `Model` class overrides the mag
 The `Model::delete()` method allows you to delete the object from the database. When successfully called, the `_id` field along with the automatic timestamp fields (if used) will be unset from the object. All other properties will still be available on the object, and they will also be prepared as "updates" in case you would want to save the object again.
 
 ```php
-$masterYoda = new Jedi('Yoda');
+$masterYoda = new Jedi();
+$masterYoda->name = 'Yoda';
 
 // Approximately 900 years later...
 
@@ -202,19 +203,17 @@ if ($objectUsingSoftDeletes->delete(true)) {
 The `Model::save()` method saves the object to the database. Depending on the type of ID used for the model, and whether the object has already been persisted, the save method will call one of two internal methods, `Model::insert()` or `Model::upsert()`. You don't have to think about this yourself. Whether you just updated a single field, or if you just created the object from scratch and need to insert the whole thing, just call `save()` and let it do everything for you.
 
 ```php
-
-$jedi = new Jedi('Anakin Skywalker');
+$jedi = new Jedi();
+$jedi->name = 'Anakin Skywalker';
 $jedi->save(); // Saves the entire object
 
 // Shit happens... Poor decisions are made...
 
-$jedi->setName('Darth Vader');
-
 $sith = $jedi;
 unset($jedi);
 
+$sith->name = 'Darth Vader';
 $sith->save(); // Just saves the new value for the name field
-
 ```
 
 #### Class Methods

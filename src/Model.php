@@ -5,6 +5,7 @@ namespace Lindelius\LaravelMongo;
 use DateTime;
 use DB;
 use Exception;
+use Illuminate\Contracts\Support\Jsonable;
 use InvalidArgumentException;
 use JsonSerializable;
 use Lindelius\LaravelMongo\Events\WriteOperationFailed;
@@ -22,7 +23,7 @@ use RuntimeException;
  * @package Lindelius\LaravelMongo
  * @version 0.3
  */
-abstract class Model implements JsonSerializable
+abstract class Model implements Jsonable, JsonSerializable
 {
     /**
      * The name of the collection associated with this model.
@@ -761,6 +762,17 @@ abstract class Model implements JsonSerializable
     public function toArray()
     {
         return $this->properties;
+    }
+
+    /**
+     * Convert the object to its JSON representation.
+     *
+     * @param  int $options
+     * @return string
+     */
+    public function toJson($options = 0)
+    {
+        return json_encode($this->jsonSerialize(), $options);
     }
 
     /**

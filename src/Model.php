@@ -3,9 +3,9 @@
 namespace Lindelius\LaravelMongo;
 
 use DateTime;
-use DB;
 use Exception;
 use Illuminate\Contracts\Support\Jsonable;
+use Illuminate\Database\ConnectionResolverInterface;
 use InvalidArgumentException;
 use JsonSerializable;
 use Lindelius\LaravelMongo\Events\WriteOperationFailed;
@@ -40,6 +40,13 @@ abstract class Model implements Jsonable, JsonSerializable
     protected static $connectionName = 'mongodb';
 
     /**
+     * The connection resolver instance.
+     *
+     * @var ConnectionResolverInterface|null
+     */
+    protected static $connectionResolver = null;
+
+    /**
      * The maximum number of times to retry a write operation.
      *
      * @var int
@@ -63,7 +70,7 @@ abstract class Model implements Jsonable, JsonSerializable
     private $properties = [];
 
     /**
-     * The tagged server sets to read from. An empty array means "all".
+     * The tagged server sets to read from. An empty array means all.
      *
      * @var array
      */
@@ -99,7 +106,8 @@ abstract class Model implements Jsonable, JsonSerializable
     private $updates = [];
 
     /**
-     * Whether to force the server to wait for the journal to be commited before acknowledging an operation.
+     * Whether to force the server to wait for the journal to be commited
+     * before acknowledging an operation.
      *
      * @var bool
      */
@@ -113,7 +121,8 @@ abstract class Model implements Jsonable, JsonSerializable
     protected static $writeConcern = 1;
 
     /**
-     * Gets the data that should be output when the object is passed to `var_dump()`.
+     * Gets the data that should be output when the object is passed to
+     * `var_dump()`.
      *
      * @return array
      * @see    http://php.net/manual/en/language.oop5.magic.php#object.debuginfo
@@ -233,6 +242,25 @@ abstract class Model implements Jsonable, JsonSerializable
     }
 
     /**
+     * Gets the connection used for this model.
+     *
+     * @return MongoDbConnection
+     * @throws Exception
+     */
+    public static function connection()
+    {
+        if (empty(static::$connectionResolver)) {
+            throw new Exception('The model "' . get_called_class() . '" is not using a connection resolver.');
+        }
+
+        if (empty(static::$connectionName) || !is_string(static::$connectionName)) {
+            throw new Exception('The model "' . get_called_class() . '" has not been assigned a connection.');
+        }
+
+        return static::$connectionResolver->connection(static::$connectionName);
+    }
+
+    /**
      * Gets the number of objects that matches the given filter.
      *
      * @param  array $filter
@@ -253,7 +281,7 @@ abstract class Model implements Jsonable, JsonSerializable
      */
     public static function database()
     {
-        $database = DB::connection(static::$connectionName)->getDatabase();
+        $database = static::connection()->getDatabase();
 
         if ($database instanceof Database) {
             return $database;
@@ -283,7 +311,8 @@ abstract class Model implements Jsonable, JsonSerializable
      *
      * @param  array $filter
      * @param  array $options
-     * @return int|bool The number of deleted documents. False, if the operation was not acknowledged.
+     * @return int|bool The number of deleted documents. False, if the
+     *                  operation was not acknowledged.
      * @throws Exception
      */
     public static function deleteMany(array $filter = [], array $options = [])
@@ -302,7 +331,8 @@ abstract class Model implements Jsonable, JsonSerializable
      *
      * @param  array $filter
      * @param  array $options
-     * @return int|bool The number of deleted documents. False, if the operation was not acknowledged.
+     * @return int|bool The number of deleted documents. False, if the
+     *                  operation was not acknowledged.
      * @throws Exception
      */
     public static function deleteOne(array $filter = [], array $options = [])
@@ -404,8 +434,9 @@ abstract class Model implements Jsonable, JsonSerializable
     /**
      * Gets the object's primary ID.
      *
-     * Override this method in order to define a custom value for the `_id` field. Make sure to return `false` if the
-     * custom value is not properly set, or the object may be assigned an `ObjectID` instead.
+     * Override this method in order to define a custom value for the `_id`
+     * field. Make sure to return `false` if the custom value is not properly
+     * set, or the object may be assigned a `MongoDB\BSON\ObjectID` instead.
      *
      * @return mixed
      */
@@ -530,7 +561,8 @@ abstract class Model implements Jsonable, JsonSerializable
     }
 
     /**
-     * Serializes the object to a value that can be serialized natively by `json_encode()`.
+     * Serializes the object to a value that can be serialized natively by
+     * `json_encode()`.
      *
      * @return mixed
      * @see    http://php.net/manual/en/jsonserializable.jsonserialize.php
@@ -543,8 +575,9 @@ abstract class Model implements Jsonable, JsonSerializable
     /**
      * Gets a new instance of the model.
      *
-     * Override this method if you add required parameters to the model's constructor, or if you have to pre-process
-     * the attributes before instantiating the model instance.
+     * Override this method if you add required parameters to the model's
+     * constructor, or if you have to pre-process the attributes before
+     * instantiating the model instance.
      *
      * @param  array $attributes
      * @return Model
@@ -714,6 +747,16 @@ abstract class Model implements Jsonable, JsonSerializable
         }
 
         return $this->upsert();
+    }
+
+    /**
+     * Sets the connection resolver instance.
+     *
+     * @param ConnectionResolverInterface $resolver
+     */
+    public static function setConnectionResolver(ConnectionResolverInterface $resolver)
+    {
+        static::$connectionResolver = $resolver;
     }
 
     /**

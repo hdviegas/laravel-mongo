@@ -10,7 +10,7 @@ use Illuminate\Support\ServiceProvider;
  *
  * @author  Tom Lindelius <tom.lindelius@gmail.com>
  * @package Lindelius\LaravelMongo
- * @version 0.2
+ * @version 0.3
  */
 class MongoDbServiceProvider extends ServiceProvider
 {
@@ -19,6 +19,7 @@ class MongoDbServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        Model::setConnectionResolver($this->app['db']);
     }
 
     /**

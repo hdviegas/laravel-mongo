@@ -203,7 +203,7 @@ abstract class Model implements Jsonable, JsonSerializable
             if (static::$timestamps) {
                 $this->updateProperty('updated_at', new DateTime());
 
-                if (empty($this->properties['created_at'])) {
+                if (!$this->isPersisted()) {
                     $this->updateProperty('created_at', new DateTime());
                 }
             }
@@ -231,8 +231,8 @@ abstract class Model implements Jsonable, JsonSerializable
      */
     public static function collection()
     {
-        if (empty(static::$collectionName) || !is_string(static::$collectionName)) {
-            throw new Exception('The model "' . get_called_class() . '" is not associated with a database collection.');
+        if (empty(static::$collectionName)) {
+            throw new Exception('The model "' . get_called_class() . '" has not been assigned a collection.');
         }
 
         return static::database()->selectCollection(static::$collectionName, [
@@ -253,7 +253,7 @@ abstract class Model implements Jsonable, JsonSerializable
             throw new Exception('The model "' . get_called_class() . '" is not using a connection resolver.');
         }
 
-        if (empty(static::$connectionName) || !is_string(static::$connectionName)) {
+        if (empty(static::$connectionName)) {
             throw new Exception('The model "' . get_called_class() . '" has not been assigned a connection.');
         }
 
@@ -917,7 +917,7 @@ abstract class Model implements Jsonable, JsonSerializable
         if (static::$timestamps) {
             $this->updateProperty('updated_at', new DateTime());
 
-            if (empty($this->properties['created_at'])) {
+            if (!$this->isPersisted()) {
                 $this->updateProperty('created_at', new DateTime());
             }
         }

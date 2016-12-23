@@ -263,7 +263,13 @@ abstract class Model implements Jsonable, JsonSerializable
             throw new Exception('The model "' . get_called_class() . '" has not been assigned a connection.');
         }
 
-        return static::$connectionResolver->connection(static::$connectionName);
+        $connection = static::$connectionResolver->connection(static::$connectionName);
+
+        if (!$connection instanceof MongoDbConnection) {
+            throw new RuntimeException('Unable to resolve a MongoDB connection for the model "' . get_called_class() . '".');
+        }
+
+        return $connection;
     }
 
     /**

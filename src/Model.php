@@ -98,6 +98,17 @@ abstract class Model implements Jsonable, JsonSerializable
     protected static $timestamps = true;
 
     /**
+     * The names of the automatic timestamp fields.
+     *
+     * @var array
+     */
+    protected static $timestampFields = [
+        'create' => 'created_at',
+        'delete' => 'deleted_at',
+        'update' => 'updated_at'
+    ];
+
+    /**
      * The updates to send to the database when saving the object.
      *
      * @internal
@@ -186,12 +197,15 @@ abstract class Model implements Jsonable, JsonSerializable
 
         $bulkOperation = null;
 
-        if ($id === null) {
-            if (static::$timestamps) {
-                $this->updateProperty('updated_at', new DateTime());
-                $this->updateProperty('created_at', new DateTime());
-            }
+        if (static::$timestamps) {
+            $this->updateProperty(static::$timestampFields['update'], new DateTime());
 
+            if (!$this->isPersisted()) {
+                $this->updateProperty(static::$timestampFields['create'], new DateTime());
+            }
+        }
+
+        if ($id === null) {
             $this->updateProperty('_id', new ObjectID());
 
             $bulkOperation = [
@@ -200,14 +214,6 @@ abstract class Model implements Jsonable, JsonSerializable
                 ]
             ];
         } else {
-            if (static::$timestamps) {
-                $this->updateProperty('updated_at', new DateTime());
-
-                if (!$this->isPersisted()) {
-                    $this->updateProperty('created_at', new DateTime());
-                }
-            }
-
             $bulkOperation = [
                 'updateOne' => [
                     ['_id' => $id],
@@ -418,7 +424,7 @@ abstract class Model implements Jsonable, JsonSerializable
      */
     public function getCreatedAt()
     {
-        return $this->returnProperty('created_at');
+        return $this->returnProperty(static::$timestampFields['create']);
     }
 
     /**
@@ -428,12 +434,11 @@ abstract class Model implements Jsonable, JsonSerializable
      */
     public function getDeletedAt()
     {
-        return $this->returnProperty('deleted_at');
+        return $this->returnProperty(static::$timestampFields['delete']);
     }
 
     /**
      * Gets the object's primary ID.
-     *
      * Override this method in order to define a custom value for the `_id`
      * field. Make sure to return `false` if the custom value is not properly
      * set, or the object may be assigned a `MongoDB\BSON\ObjectID` instead.
@@ -452,7 +457,7 @@ abstract class Model implements Jsonable, JsonSerializable
      */
     public function getUpdatedAt()
     {
-        return $this->returnProperty('updated_at');
+        return $this->returnProperty(static::$timestampFields['update']);
     }
 
     /**
@@ -479,9 +484,9 @@ abstract class Model implements Jsonable, JsonSerializable
                     unset($this->properties['_id']);
                 }
 
-                unset($this->properties['created_at']);
-                unset($this->properties['deleted_at']);
-                unset($this->properties['updated_at']);
+                unset($this->properties[static::$timestampFields['create']]);
+                unset($this->properties[static::$timestampFields['delete']]);
+                unset($this->properties[static::$timestampFields['update']]);
 
                 $this->persisted = false;
                 $this->updates   = $this->properties;
@@ -510,8 +515,8 @@ abstract class Model implements Jsonable, JsonSerializable
         }
 
         if (static::$timestamps) {
-            $this->updateProperty('updated_at', new DateTime());
-            $this->updateProperty('created_at', new DateTime());
+            $this->updateProperty(static::$timestampFields['update'], new DateTime());
+            $this->updateProperty(static::$timestampFields['create'], new DateTime());
         }
 
         $this->updateProperty('_id', new ObjectID());
@@ -574,7 +579,6 @@ abstract class Model implements Jsonable, JsonSerializable
 
     /**
      * Gets a new instance of the model.
-     *
      * Override this method if you add required parameters to the model's
      * constructor, or if you have to pre-process the attributes before
      * instantiating the model instance.
@@ -681,11 +685,11 @@ abstract class Model implements Jsonable, JsonSerializable
             try {
                 $result = static::collection()->updateOne(
                     ['_id' => $id],
-                    ['$unset' => ['deleted_at' => '']]
+                    ['$unset' => [static::$timestampFields['delete'] => '']]
                 );
 
-                unset($this->properties['deleted_at']);
-                unset($this->updates['deleted_at']);
+                unset($this->properties[static::$timestampFields['delete']]);
+                unset($this->updates[static::$timestampFields['delete']]);
 
                 if ($result->isAcknowledged() && $result->getMatchedCount() === 0) {
                     $this->persisted = false;
@@ -785,7 +789,7 @@ abstract class Model implements Jsonable, JsonSerializable
 
                 $result = static::collection()->updateOne(
                     ['_id' => $id],
-                    ['$set' => ['deleted_at' => getBsonDateFromDateTime($now)]]
+                    ['$set' => [static::$timestampFields['delete'] => getBsonDateFromDateTime($now)]]
                 );
 
                 if ($result->isAcknowledged() && $result->getMatchedCount() === 0) {
@@ -794,9 +798,9 @@ abstract class Model implements Jsonable, JsonSerializable
                     return false;
                 }
 
-                $this->properties['deleted_at'] = $now;
+                $this->properties[static::$timestampFields['delete']] = $now;
 
-                unset($this->updates['deleted_at']);
+                unset($this->updates[static::$timestampFields['delete']]);
 
                 return true;
             } catch (Exception $e) {
@@ -915,10 +919,10 @@ abstract class Model implements Jsonable, JsonSerializable
         }
 
         if (static::$timestamps) {
-            $this->updateProperty('updated_at', new DateTime());
+            $this->updateProperty(static::$timestampFields['update'], new DateTime());
 
             if (!$this->isPersisted()) {
-                $this->updateProperty('created_at', new DateTime());
+                $this->updateProperty(static::$timestampFields['create'], new DateTime());
             }
         }
 

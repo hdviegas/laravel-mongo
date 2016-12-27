@@ -109,6 +109,13 @@ abstract class Model implements Jsonable, JsonSerializable
     ];
 
     /**
+     * Whether to unset null value fields in the database.
+     *
+     * @var bool
+     */
+    protected static $unsetNulls = false;
+
+    /**
      * The updates to send to the database when saving the object.
      *
      * @internal
@@ -534,11 +541,21 @@ abstract class Model implements Jsonable, JsonSerializable
 
         $this->updateProperty('_id', new ObjectID());
 
+        $valuesToSet = convertDateTimeObjects($this->updates);
+
+        if (static::$unsetNulls) {
+            foreach ($valuesToSet as $field => $value) {
+                if ($value === null) {
+                    unset($valuesToSet[$field]);
+                }
+            }
+        }
+
         $attempt = 1;
 
         do {
             try {
-                static::collection()->insertOne(convertDateTimeObjects($this->updates));
+                static::collection()->insertOne($valuesToSet);
 
                 $this->persisted = true;
                 $this->updates   = [];
@@ -926,7 +943,7 @@ abstract class Model implements Jsonable, JsonSerializable
         $id = $this->getId();
 
         if ($id === false) {
-            throw new RuntimeException('Tried to save an object (' . get_class($this) . ') with an invalid ID.');
+            throw new RuntimeException('Tried to save an object (' . get_called_class() . ') with an invalid ID.');
         }
 
         if (empty($this->updates) && $this->isPersisted()) {
@@ -941,13 +958,31 @@ abstract class Model implements Jsonable, JsonSerializable
             }
         }
 
+        $valuesToSet   = convertDateTimeObjects($this->updates);
+        $valuesToUnset = [];
+
+        if (static::$unsetNulls) {
+            foreach ($valuesToSet as $field => $value) {
+                if ($value === null) {
+                    $valuesToUnset[$field] = null;
+                    unset($valuesToSet[$field]);
+                }
+            }
+        }
+
+        $updates = ['$set' => $valuesToSet];
+
+        if (!empty($valuesToUnset)) {
+            $updates['$unset'] = $valuesToUnset;
+        }
+
         $attempt = 1;
 
         do {
             try {
                 $result = static::collection()->updateOne(
                     ['_id' => $id],
-                    ['$set' => convertDateTimeObjects($this->updates)],
+                    $updates,
                     $this->isPersisted() ? [] : ['upsert' => true]
                 );
 

@@ -15,6 +15,7 @@ use MongoDB\Database;
 use MongoDB\Driver\ReadPreference;
 use MongoDB\Driver\WriteConcern;
 use RuntimeException;
+use Traversable;
 
 /**
  * Abstract model for MongoDB documents.
@@ -183,6 +184,19 @@ abstract class Model implements Jsonable, JsonSerializable
     public function __set($property, $newValue)
     {
         $this->updateProperty($property, $newValue);
+    }
+
+    /**
+     * Executes an aggregation framework pipeline on the model's collection.
+     *
+     * @param  array $pipeline
+     * @param  array $options
+     * @return Traversable
+     * @throws Exception
+     */
+    public static function aggregate(array $pipeline = [], array $options = [])
+    {
+        return static::collection()->aggregate($pipeline, $options);
     }
 
     /**
@@ -371,6 +385,21 @@ abstract class Model implements Jsonable, JsonSerializable
         }
 
         return false;
+    }
+
+    /**
+     * Finds the distinct values for a specified field across the model's
+     * collection.
+     *
+     * @param  string $field
+     * @param  array  $filter
+     * @param  array  $options
+     * @return mixed
+     * @throws Exception
+     */
+    public static function distinct($field, array $filter = [], array $options = [])
+    {
+        return static::collection()->distinct($field, $filter, $options);
     }
 
     /**

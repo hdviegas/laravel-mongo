@@ -230,6 +230,14 @@ abstract class Model implements Jsonable, JsonSerializable
     }
 
     /**
+     * Handles model related actions that should be performed before the object
+     * is saved to the database.
+     */
+    protected function beforeSave()
+    {
+    }
+
+    /**
      * Gets the collection object associated with this model.
      *
      * @return Collection
@@ -414,13 +422,12 @@ abstract class Model implements Jsonable, JsonSerializable
     public static function findOne(array $filter = [], array $options = [])
     {
         $document = static::collection()->findOne($filter, $options);
-        $model    = null;
 
-        if (!empty($document)) {
-            $model = static::newInstance($document);
+        if (empty($document)) {
+            return null;
         }
 
-        return $model;
+        return static::newInstance($document);
     }
 
     /**
@@ -539,7 +546,7 @@ abstract class Model implements Jsonable, JsonSerializable
                 return true;
             } catch (Exception $e) {
                 if (strpos($e->getMessage(), '_id_ dup key') !== false) {
-                    return true;
+                    return $attempt === static::$maxRetryAttempts;
                 }
 
                 event(new WriteOperationFailed($e, $this));
@@ -752,6 +759,8 @@ abstract class Model implements Jsonable, JsonSerializable
      */
     public function save()
     {
+        $this->beforeSave();
+
         if ($this->getId() === null) {
             return $this->insert();
         }

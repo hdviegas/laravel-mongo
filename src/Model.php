@@ -74,6 +74,7 @@ abstract class Model implements Jsonable, JsonSerializable
      * The tagged server sets to read from. An empty array means all.
      *
      * @var array
+     * @see https://docs.mongodb.com/manual/core/read-preference/#tag-sets
      */
     protected static $readFromSets = [];
 
@@ -81,6 +82,7 @@ abstract class Model implements Jsonable, JsonSerializable
      * The read preference to use for the database read operations.
      *
      * @var int
+     * @see http://php.net/manual/en/mongodb-driver-readpreference.construct.php
      */
     protected static $readPreference = ReadPreference::RP_PRIMARY;
 
@@ -129,6 +131,7 @@ abstract class Model implements Jsonable, JsonSerializable
      * before acknowledging an operation.
      *
      * @var bool
+     * @see https://docs.mongodb.com/manual/reference/write-concern/#j-option
      */
     protected static $waitForJournal = false;
 
@@ -136,6 +139,7 @@ abstract class Model implements Jsonable, JsonSerializable
      * The write concern to use for the database write operations.
      *
      * @var int
+     * @see http://php.net/manual/en/mongodb-driver-writeconcern.construct.php
      */
     protected static $writeConcern = 1;
 
@@ -193,6 +197,7 @@ abstract class Model implements Jsonable, JsonSerializable
      * @param  array $options
      * @return Traversable
      * @throws Exception
+     * @see    Collection::aggregate()
      */
     public static function aggregate(array $pipeline = [], array $options = [])
     {
@@ -308,6 +313,7 @@ abstract class Model implements Jsonable, JsonSerializable
      * @param  array $options
      * @return int
      * @throws Exception
+     * @see    Collection::count()
      */
     public static function count(array $filter = [], array $options = [])
     {
@@ -396,6 +402,7 @@ abstract class Model implements Jsonable, JsonSerializable
      * @param  array  $options
      * @return mixed
      * @throws Exception
+     * @see    Collection::distinct()
      */
     public static function distinct($field, array $filter = [], array $options = [])
     {
@@ -420,7 +427,7 @@ abstract class Model implements Jsonable, JsonSerializable
      *
      * @param  array $filter
      * @param  array $options
-     * @return Model[]
+     * @return static[]
      * @throws Exception
      */
     public static function find(array $filter = [], array $options = [])
@@ -439,7 +446,7 @@ abstract class Model implements Jsonable, JsonSerializable
      * Finds and returns the object that matches the given ID.
      *
      * @param  mixed $id
-     * @return Model|null
+     * @return static|null
      * @throws Exception
      */
     public static function findById($id)
@@ -452,7 +459,7 @@ abstract class Model implements Jsonable, JsonSerializable
      *
      * @param  array $filter
      * @param  array $options
-     * @return Model|null
+     * @return static|null
      * @throws Exception
      */
     public static function findOne(array $filter = [], array $options = [])
@@ -643,7 +650,7 @@ abstract class Model implements Jsonable, JsonSerializable
      * instantiating the model instance.
      *
      * @param  array $attributes
-     * @return Model
+     * @return static
      */
     public static function newInstance(array $attributes = [])
     {

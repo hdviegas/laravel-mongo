@@ -205,6 +205,14 @@ abstract class Model implements Jsonable, JsonSerializable
     }
 
     /**
+     * Handles model related actions that should be performed after the object
+     * has been successfully saved to the database.
+     */
+    protected function afterSave()
+    {
+    }
+
+    /**
      * Gets the object's updates as a bulk operation.
      *
      * @return array|null
@@ -815,10 +823,16 @@ abstract class Model implements Jsonable, JsonSerializable
         $this->beforeSave();
 
         if ($this->getId() === null) {
-            return $this->insert();
+            $result = $this->insert();
+        } else {
+            $result = $this->upsert();
         }
 
-        return $this->upsert();
+        if ($result) {
+            $this->afterSave();
+        }
+
+        return $result;
     }
 
     /**

@@ -368,7 +368,7 @@ The model comes with a method &mdash; `Model::afterSave()` &mdash; that is fired
 The model comes with a method &mdash; `Model::beforeSave()` &mdash; that is fired before every save operation. Override this method if you need to do any pre-save validations, calculations, or whatever else you might need to do.
 
 ##### Connection Settings
-As previously mentioned (in the usage example), the only part of the abstract model that you must override is the `Model::$collectionName` property. Just set it to the name of the associated MongoDB collection and you're good to go.
+As previously mentioned (in the usage example), the only part of the abstract model that you **must** override is the `Model::$collectionName` property. Just set it to the name of the associated MongoDB collection and you're good to go.
 
 ```php
 protected static $collectionName = 'name_of_collection';
@@ -382,11 +382,13 @@ If your models require custom IDs, i.e. any value other than a `MongoDB\BSON\Obj
 ```php
 public function getId()
 {
-    if (empty($this->returnProperty('_id.account')) || empty($this->returnProperty('_id.date'))) {
+    $id = $this->returnProperty('_id');
+    
+    if (empty($id['account']) || empty($id['date'])) {
         return false;
     }
 
-    return $this->returnProperty('_id');
+    return $id;
 }
 ```
 
@@ -417,7 +419,7 @@ class User extends Model
 ```
 
 ##### Unset Null Value Fields
-While not really useful for databases that are using the WiredTiger storage engine (due to its compression), the model includes an option to automatically unset null value fields rather than to store the field and it's value.
+While not really useful for databases that are using the WiredTiger storage engine (due to its compression), the model includes an option to automatically unset null value fields rather than to store the field and its value.
 
 This functionality is disabled by default but you can turn it on by setting the static `Model::$unsetNulls` property to `true`.
 

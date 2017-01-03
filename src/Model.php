@@ -607,7 +607,14 @@ abstract class Model implements Jsonable, JsonSerializable
                 return true;
             } catch (Exception $e) {
                 if (strpos($e->getMessage(), '_id_ dup key') !== false) {
-                    return $attempt === static::$maxRetryAttempts;
+                    if ($attempt === static::$maxRetryAttempts) {
+                        $this->persisted = true;
+                        $this->updates   = [];
+
+                        return true;
+                    }
+
+                    return false;
                 }
 
                 event(new WriteOperationFailed($e, $this));

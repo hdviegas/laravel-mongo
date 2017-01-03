@@ -362,7 +362,7 @@ if ($yoda === null) {
 #### Extending the Abstract Model
 
 ##### After Save
-The model comes with a method &mdash; `Model::afterSave()` &mdash; that is fired after every successful save operation. Override this method if you need to update normalized data, or whatever else you might need to do.
+The model comes with a method &mdash; `Model::afterSave()` &mdash; that is fired after every successful save operation. This method is injected with an array containing the field names of the properties that were updated during the save operation. Override this method if you need to update data in other collections or whatever else you might need to do.
 
 ##### Before Save
 The model comes with a method &mdash; `Model::beforeSave()` &mdash; that is fired before every save operation. Override this method if you need to do any pre-save validations, calculations, or whatever else you might need to do.

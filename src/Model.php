@@ -87,6 +87,13 @@ abstract class Model implements Jsonable, JsonSerializable
     protected static $readPreference = ReadPreference::RP_PRIMARY;
 
     /**
+     * The object properties that were recently updated.
+     *
+     * @var array
+     */
+    private $recentlyUpdated = [];
+
+    /**
      * Whether to use soft deletes for objects using this model.
      *
      * @var bool
@@ -207,8 +214,10 @@ abstract class Model implements Jsonable, JsonSerializable
     /**
      * Handles model related actions that should be performed after the object
      * has been successfully saved to the database.
+     *
+     * @param array $updatedFields
      */
-    protected function afterSave()
+    protected function afterSave(array $updatedFields = [])
     {
     }
 
@@ -601,15 +610,17 @@ abstract class Model implements Jsonable, JsonSerializable
             try {
                 static::collection()->insertOne($valuesToSet);
 
-                $this->persisted = true;
-                $this->updates   = [];
+                $this->persisted       = true;
+                $this->recentlyUpdated = array_keys($valuesToSet);
+                $this->updates         = [];
 
                 return true;
             } catch (Exception $e) {
                 if (strpos($e->getMessage(), '_id_ dup key') !== false) {
                     if ($attempt === static::$maxRetryAttempts) {
-                        $this->persisted = true;
-                        $this->updates   = [];
+                        $this->persisted       = true;
+                        $this->recentlyUpdated = array_keys($valuesToSet);
+                        $this->updates         = [];
 
                         return true;
                     }
@@ -836,8 +847,10 @@ abstract class Model implements Jsonable, JsonSerializable
         }
 
         if ($result) {
-            $this->afterSave();
+            $this->afterSave($this->recentlyUpdated);
         }
+
+        $this->recentlyUpdated = [];
 
         return $result;
     }
@@ -1049,8 +1062,9 @@ abstract class Model implements Jsonable, JsonSerializable
                     return false;
                 }
 
-                $this->persisted = true;
-                $this->updates   = [];
+                $this->persisted       = true;
+                $this->recentlyUpdated = array_keys(array_merge($valuesToSet, $valuesToUnset));
+                $this->updates         = [];
 
                 return true;
             } catch (Exception $e) {

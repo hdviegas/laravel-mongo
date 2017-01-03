@@ -5,6 +5,12 @@ This library is built on top of [the official MongoDB PHP library](https://githu
 
 Please note that this library does *not* extend Eloquent, as Eloquent is designed and written for SQL databases.
 
+## Requirements
+
+* PHP 5.6, or higher
+* MongoDB PHP driver 1.2.*
+* Laravel/Lumen 5.3.*
+
 ## Table of Contents
 
 * [Installation](#installation)

@@ -223,6 +223,8 @@ abstract class Model implements Jsonable, JsonSerializable
 
     /**
      * Gets the object's updates as a bulk operation.
+     * This method does not trigger the `Model::beforeSave()` or
+     * `Model::afterSave()` methods.
      *
      * @return array|null
      */
@@ -666,7 +668,7 @@ abstract class Model implements Jsonable, JsonSerializable
      */
     public function jsonSerialize()
     {
-        return $this->properties;
+        return $this->toArray();
     }
 
     /**
@@ -933,7 +935,7 @@ abstract class Model implements Jsonable, JsonSerializable
      */
     public function toJson($options = 0)
     {
-        return json_encode($this->jsonSerialize(), $options);
+        return json_encode($this->toArray(), $options);
     }
 
     /**

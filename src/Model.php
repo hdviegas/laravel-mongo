@@ -283,6 +283,16 @@ abstract class Model implements Jsonable, JsonSerializable
     }
 
     /**
+     * Clears all properties and prepared updates for the object.
+     */
+    protected function clearObject()
+    {
+        $this->persisted  = false;
+        $this->properties = [];
+        $this->updates    = [];
+    }
+
+    /**
      * Gets the collection object associated with this model.
      *
      * @return Collection
@@ -436,6 +446,8 @@ abstract class Model implements Jsonable, JsonSerializable
      */
     public function fill(array $attributes)
     {
+        $this->clearObject();
+
         foreach ($attributes as $property => $value) {
             $this->updateProperty($property, $value, true);
         }
@@ -987,9 +999,7 @@ abstract class Model implements Jsonable, JsonSerializable
 
             $newProperty = $isFilling ? convertBsonDateObjects($newValue) : $newValue;
 
-            if ($isFilling) {
-                $this->updates = [];
-            } else {
+            if (!$isFilling) {
                 $this->prepareUpdate($property, $newValue);
             }
         } catch (Exception $e) {

@@ -45,6 +45,7 @@ Please note that this library does *not* extend Eloquent, as Eloquent is designe
             * [Before Save](#before-save)
             * [Connection Settings](#connection-settings)
             * [Custom Document IDs](#custom-document-ids)
+            * [Properties](#properties)
             * [Read Preference](#read-preference)
             * [Soft Deletes](#soft-deletes)
             * [Timestamps](#timestamps)
@@ -395,6 +396,39 @@ public function getId()
     }
 
     return $id;
+}
+```
+
+##### Properties
+Due to how the model works, the properties of the objects aren't actually stored as public properties but instead as keys and values in an internal array. As the model overrides the magic `__get()` and `__set()` methods by default, you can use the instances just like you would with any normal objects. What actually happens under the hood, though, are calls to the `Model::returnProperty()` and `Model::updateProperty()` methods.
+
+Both methods support dot notation for accessing nested fields, but other than that they are pretty straight forward.
+
+```php
+class Jedi
+{
+    // ...
+    
+    /**
+     * Gives the Jedi a new name, and returns the old one.
+     *
+     * @param  string $name
+     * @return string
+     */
+    public function setName($name)
+    {
+        return $this->updateProperty('name', $name);
+    }
+    
+    /**
+     * Gets the Jedi's current name.
+     *
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->returnProperty('name');
+    }
 }
 ```
 

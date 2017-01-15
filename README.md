@@ -158,6 +158,27 @@ class Jedi extends Model
      * @var string
      */
     protected static $collectionName = 'jedi';
+    
+    /**
+     * Gives the Jedi a new name, and returns the old one.
+     *
+     * @param  string $name
+     * @return string
+     */
+    public function setName($name)
+    {
+        return $this->updateProperty('name', $name);
+    }
+    
+    /**
+     * Gets the Jedi's current name.
+     *
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->returnProperty('name');
+    }
 }
 
 ```
@@ -166,6 +187,9 @@ After having extended the `Model` class and added the necessary properties (`Mod
 
 ```php
 $jedi = new Jedi();
+
+$jedi->setName('Anakin Skywalker');
+// or
 $jedi->name = 'Anakin Skywalker';
 
 if ($jedi->save()) {
@@ -402,35 +426,7 @@ public function getId()
 ##### Properties
 Due to how the model works, the properties of the objects aren't actually stored as public properties but instead as keys and values in an internal array. As the model overrides the magic `__get()` and `__set()` methods by default, you can use the instances just like you would with any normal objects. What actually happens under the hood, though, are calls to the `Model::returnProperty()` and `Model::updateProperty()` methods.
 
-Both methods support dot notation for accessing nested fields, but other than that they are pretty straight forward.
-
-```php
-class Jedi
-{
-    // ...
-    
-    /**
-     * Gives the Jedi a new name, and returns the old one.
-     *
-     * @param  string $name
-     * @return string
-     */
-    public function setName($name)
-    {
-        return $this->updateProperty('name', $name);
-    }
-    
-    /**
-     * Gets the Jedi's current name.
-     *
-     * @return string
-     */
-    public function getName()
-    {
-        return $this->returnProperty('name');
-    }
-}
-```
+Both methods support dot notation for accessing nested fields, but other than that they are pretty straight forward. See the `Jedi` class in the beginning of the [Abstract Model](#abstract-model) chapter for an example on how to use them.
 
 ##### Read Preference
 The read preference settings for the model objects uses the MongoDB default, which currently is "primaries from any replica sets". You can, however, easily override this by changing the static `Model::$readFromSets` and `Model::$readPreference` properties, or by overriding the static `Model::readPreference()` method.
@@ -448,14 +444,11 @@ The model automatically adds timestamps to the MongoDB documents by default. The
 You can turn automatic timestamps off by setting the static `Model::$timestamps` property to `false`. You can also customize the names of the timestamp fields by overriding the static `Model::$timestampFields` property.
 
 ```php
-class User extends Model
-{
-    protected static $timestampFields = [
-        'create' => 'registered_at',
-        'delete' => 'deactivated_at',
-        'update' => 'updated_at'
-    ];
-}
+protected static $timestampFields = [
+    'create' => 'registered_at',
+    'delete' => 'deactivated_at',
+    'update' => 'updated_at'
+];
 ```
 
 ##### Unset Null Value Fields

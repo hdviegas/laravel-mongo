@@ -749,7 +749,7 @@ abstract class Model implements Jsonable, JsonSerializable
         }
 
         foreach ($this->updates as $updateField => $updateValue) {
-            if (strpos($updateField, $finalField) === 0) {
+            if (strpos($updateField, $finalField . '.') === 0) {
                 unset($this->updates[$updateField]);
             }
         }

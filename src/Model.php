@@ -658,7 +658,11 @@ abstract class Model implements Jsonable, JsonSerializable
      */
     public function isDeleted()
     {
-        return (!$this->isPersisted() || $this->getDeletedAt() !== null);
+        if (!$this->isPersisted()) {
+            return true;
+        }
+
+        return $this->returnProperty(static::$timestampFields['delete']) !== null;
     }
 
     /**

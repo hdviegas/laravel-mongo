@@ -9,7 +9,7 @@ Please note that this library does *not* extend Eloquent, as Eloquent is designe
 
 * PHP 5.6, or higher
 * MongoDB PHP driver 1.2.*
-* Laravel/Lumen 5.3.*
+* Laravel/Lumen 5.3.* or 5.4.*
 
 ## Table of Contents
 

@@ -5,7 +5,9 @@ namespace Lindelius\LaravelMongo;
 use DateTime;
 use Exception;
 use Illuminate\Contracts\Support\Jsonable;
+use Illuminate\Contracts\Validation\Factory as ValidationFactory;
 use Illuminate\Database\ConnectionResolverInterface;
+use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use JsonSerializable;
 use Lindelius\LaravelMongo\Events\WriteOperationFailed;
@@ -132,6 +134,20 @@ abstract class Model implements Jsonable, JsonSerializable
      * @var array
      */
     private $updates = [];
+
+    /**
+     * Custom validation messages for the model's properties.
+     *
+     * @var array
+     */
+    protected static $validationMessages = [];
+
+    /**
+     * Validation rules for the model's properties.
+     *
+     * @var array
+     */
+    protected static $validationRules = [];
 
     /**
      * Whether to force the server to wait for the journal to be commited
@@ -277,9 +293,12 @@ abstract class Model implements Jsonable, JsonSerializable
     /**
      * Handles model related actions that should be performed before the object
      * is saved to the database.
+     *
+     * @throws ValidationException
      */
     protected function beforeSave()
     {
+        $this->validate();
     }
 
     /**
@@ -1091,6 +1110,33 @@ abstract class Model implements Jsonable, JsonSerializable
         } while ($attempt <= static::$maxRetryAttempts);
 
         return false;
+    }
+
+    /**
+     * Validates the current property values of the model instance.
+     *
+     * @throws RuntimeException
+     * @throws ValidationException
+     */
+    public function validate()
+    {
+        if (!empty(static::$validationRules)) {
+            $validationFactory = app('validator');
+
+            if (!$validationFactory instanceof ValidationFactory) {
+                throw new RuntimeException('Unable to instantiate a validation factory.');
+            }
+
+            $validator = $validationFactory->make(
+                $this->toArray(),
+                static::$validationRules,
+                static::$validationMessages
+            );
+
+            if ($validator->fails()) {
+                throw new ValidationException($validator);
+            }
+        }
     }
 
     /**

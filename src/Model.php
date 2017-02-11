@@ -214,6 +214,16 @@ abstract class Model implements Jsonable, JsonSerializable
     }
 
     /**
+     * Convert the model to its string representation.
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        return $this->toJson();
+    }
+
+    /**
      * Executes an aggregation framework pipeline on the model's collection.
      *
      * @param  array $pipeline

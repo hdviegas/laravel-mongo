@@ -5,6 +5,8 @@ This library is built on top of [the official MongoDB PHP library](https://githu
 
 Please note that this library does *not* extend Eloquent, as Eloquent is designed and written for SQL databases.
 
+Status: Awaiting version 1.2 of the official MongoDB PHP library in order to continue development.
+
 ## Requirements
 
 * PHP 5.6, or higher

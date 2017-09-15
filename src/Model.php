@@ -11,7 +11,7 @@ use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use JsonSerializable;
 use Lindelius\LaravelMongo\Events\WriteOperationFailed;
-use MongoDB\BSON\ObjectID;
+use MongoDB\BSON\ObjectId;
 use MongoDB\Collection;
 use MongoDB\Database;
 use MongoDB\Driver\ReadPreference;
@@ -277,7 +277,7 @@ abstract class Model implements Jsonable, JsonSerializable
         }
 
         if ($id === null) {
-            $this->updateProperty('_id', new ObjectID());
+            $this->updateProperty('_id', new ObjectId());
 
             $bulkOperation = [
                 'insertOne' => [
@@ -557,7 +557,7 @@ abstract class Model implements Jsonable, JsonSerializable
      * Gets the object's primary ID.
      * Override this method in order to define a custom value for the `_id`
      * field. Make sure to return `false` if the custom value is not properly
-     * set, or the object may be assigned a `MongoDB\BSON\ObjectID` instead.
+     * set, or the object may be assigned a `MongoDB\BSON\ObjectId` instead.
      *
      * @return mixed
      */
@@ -596,7 +596,7 @@ abstract class Model implements Jsonable, JsonSerializable
             try {
                 static::collection()->deleteOne(['_id' => $id]);
 
-                if ($this->properties['_id'] instanceof ObjectID) {
+                if ($this->properties['_id'] instanceof ObjectId) {
                     unset($this->properties['_id']);
                 }
 
@@ -635,7 +635,7 @@ abstract class Model implements Jsonable, JsonSerializable
             $this->updateProperty(static::$timestampFields['create'], new DateTime());
         }
 
-        $this->updateProperty('_id', new ObjectID());
+        $this->updateProperty('_id', new ObjectId());
 
         $valuesToSet = convertDateTimeObjects($this->updates);
 

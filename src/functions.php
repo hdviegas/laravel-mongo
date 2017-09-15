@@ -1,6 +1,6 @@
 <?php
 
-use MongoDB\BSON\ObjectID;
+use MongoDB\BSON\ObjectId;
 use MongoDB\BSON\Timestamp;
 use MongoDB\BSON\UTCDateTime;
 use MongoDB\Client;
@@ -276,7 +276,7 @@ if (!function_exists('sanitizeFieldValue')) {
         }
 
         if (is_object($object)) {
-            if ($object instanceof ObjectID || $object instanceof Timestamp || $object instanceof UTCDateTime) {
+            if ($object instanceof ObjectId || $object instanceof Timestamp || $object instanceof UTCDateTime) {
                 return $object;
             }
 

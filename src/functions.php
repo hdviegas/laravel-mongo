@@ -133,57 +133,6 @@ if (!function_exists('getBsonDateFromDateTime')) {
     }
 }
 
-if (!function_exists('getMongoDb')) {
-    /**
-     * Gets a fully configured `MongoDB\Database` object.
-     *
-     * @param  array|string $host
-     * @param  string       $database
-     * @param  string       $username
-     * @param  string       $password
-     * @param  array        $uriOptions
-     * @param  array        $driverOptions
-     * @return Database
-     * @throws InvalidArgumentException
-     */
-    function getMongoDb($host, $database, $username = null, $password = null, array $uriOptions = [], array $driverOptions = [])
-    {
-        if (empty($host) || (!is_string($host) && !is_array($host))) {
-            throw new InvalidArgumentException('The host must be a valid string, or an array.');
-        }
-
-        if (empty($database) || !is_string($database)) {
-            throw new InvalidArgumentException('The database name must be a valid string.');
-        }
-
-        $defaultDriverOptions = [
-            'typeMap' => [
-                'root'     => 'array',
-                'document' => 'array',
-                'array'    => 'array'
-            ]
-        ];
-
-        $defaultUriOptions = [
-            'authSource'       => $database,
-            'connectTimeoutMS' => 5000
-        ];
-
-        if (!empty($username) && !empty($password)) {
-            $defaultUriOptions['username'] = $username;
-            $defaultUriOptions['password'] = $password;
-        }
-
-        $client = new Client(
-            sprintf('mongodb://%s/', is_array($host) ? implode(',', $host) : $host),
-            array_merge($defaultUriOptions, $uriOptions),
-            array_merge($defaultDriverOptions, $driverOptions)
-        );
-
-        return $client->selectDatabase($database);
-    }
-}
-
 if (!function_exists('getTimestampFromBsonDate')) {
     /**
      * Converts a `MongoDB\BSON\UTCDateTime` object to a UNIX timestamp.

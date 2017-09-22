@@ -102,38 +102,6 @@ class FunctionsTest extends TestCase
     }
 
     /**
-     * Tests the `getMongoDb()` function and makes sure that it returns a `Database` object.
-     */
-    public function testGetMongoDb()
-    {
-        $database = getMongoDb('127.0.0.1:27017', 'test');
-
-        $this->assertInstanceOf(Database::class, $database);
-    }
-
-    /**
-     * Tests the `getMongoDb()` function and makes sure that it throws an error when given an invalid database name.
-     *
-     * @dataProvider      getInvalidDatabaseNames
-     * @expectedException InvalidArgumentException
-     */
-    public function testGetMongoDbWithInvalidDatabaseName($databaseName)
-    {
-        getMongoDb('127.0.0.1:27017', $databaseName);
-    }
-
-    /**
-     * Tests the `getMongoDb()` function and makes sure that it throws an error when given an invalid host.
-     *
-     * @dataProvider      getInvalidHosts
-     * @expectedException InvalidArgumentException
-     */
-    public function testGetMongoDbWithInvalidHost($host)
-    {
-        getMongoDb($host, 'test');
-    }
-
-    /**
      * Tests the `sanitizeFieldKey()` function and makes sure that it cleans up invalid characters.
      */
     public function testSanitizeFieldKeyWithCleanUp()

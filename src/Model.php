@@ -117,7 +117,7 @@ abstract class Model implements Jsonable, JsonSerializable
     protected static $timestampFields = [
         'create' => 'created_at',
         'delete' => 'deleted_at',
-        'update' => 'updated_at'
+        'update' => 'updated_at',
     ];
 
     /**
@@ -185,7 +185,7 @@ abstract class Model implements Jsonable, JsonSerializable
             'softDeletes'      => static::$softDeletes,
             'timestamps'       => static::$timestamps,
             'updates'          => $this->updates,
-            'writeConcern'     => static::writeConcern()
+            'writeConcern'     => static::writeConcern(),
         ];
     }
 
@@ -281,16 +281,16 @@ abstract class Model implements Jsonable, JsonSerializable
 
             $bulkOperation = [
                 'insertOne' => [
-                    convertDateTimeObjects($this->updates)
-                ]
+                    convertDateTimeObjects($this->updates),
+                ],
             ];
         } else {
             $bulkOperation = [
                 'updateOne' => [
                     ['_id' => $id],
                     ['$set' => convertDateTimeObjects($this->updates)],
-                    $this->isPersisted() ? [] : ['upsert' => true]
-                ]
+                    $this->isPersisted() ? [] : ['upsert' => true],
+                ],
             ];
         }
 
@@ -330,13 +330,19 @@ abstract class Model implements Jsonable, JsonSerializable
     public static function collection()
     {
         if (empty(static::$collectionName)) {
-            throw new Exception('The model "' . get_called_class() . '" has not been assigned a collection.');
+            throw new Exception(sprintf(
+                'The model "%s" has not been assigned a collection.',
+                get_called_class()
+            ));
         }
 
-        return static::database()->selectCollection(static::$collectionName, [
-            'readPreference' => static::readPreference(),
-            'writeConcern'   => static::writeConcern()
-        ]);
+        return static::database()->selectCollection(
+            static::$collectionName,
+            [
+                'readPreference' => static::readPreference(),
+                'writeConcern'   => static::writeConcern(),
+            ]
+        );
     }
 
     /**
@@ -348,17 +354,26 @@ abstract class Model implements Jsonable, JsonSerializable
     public static function connection()
     {
         if (empty(static::$connectionResolver)) {
-            throw new Exception('The model "' . get_called_class() . '" is not using a connection resolver.');
+            throw new Exception(sprintf(
+                'The model "%s" is not using a connection resolver.',
+                get_called_class()
+            ));
         }
 
         if (empty(static::$connectionName)) {
-            throw new Exception('The model "' . get_called_class() . '" has not been assigned a connection.');
+            throw new Exception(sprintf(
+                'The model "%s" has not been assigned a connection.',
+                get_called_class()
+            ));
         }
 
         $connection = static::$connectionResolver->connection(static::$connectionName);
 
         if (!$connection instanceof MongoDbConnection) {
-            throw new RuntimeException('Unable to resolve a MongoDB connection for the model "' . get_called_class() . '".');
+            throw new RuntimeException(sprintf(
+                'Unable to resolve a MongoDB connection for the model "%s".',
+                get_called_class()
+            ));
         }
 
         return $connection;
@@ -388,11 +403,14 @@ abstract class Model implements Jsonable, JsonSerializable
     {
         $database = static::connection()->getDatabase();
 
-        if ($database instanceof Database) {
-            return $database;
+        if (!$database instanceof Database) {
+            throw new Exception(sprintf(
+                'The database object for the "%s" model is not properly configured.',
+                get_called_class()
+            ));
         }
 
-        throw new Exception('The database object for the "' . get_called_class() . '" model is not properly configured.');
+        return $database;
     }
 
     /**
@@ -584,13 +602,12 @@ abstract class Model implements Jsonable, JsonSerializable
      */
     private function hardDelete()
     {
-        $id = $this->getId();
-
         if (!$this->isPersisted()) {
             return true;
         }
 
         $attempt = 1;
+        $id      = $this->getId();
 
         do {
             try {
@@ -687,11 +704,11 @@ abstract class Model implements Jsonable, JsonSerializable
      */
     public function isDeleted()
     {
-        if (!$this->isPersisted()) {
+        if (!$this->isPersisted() || $this->returnProperty(static::$timestampFields['delete']) !== null) {
             return true;
         }
 
-        return $this->returnProperty(static::$timestampFields['delete']) !== null;
+        return false;
     }
 
     /**
@@ -772,9 +789,11 @@ abstract class Model implements Jsonable, JsonSerializable
                     $finalField = $parentField;
                     $finalValue = $parentProperties;
                     break;
-                } elseif ($i === 0 || $checkpoint) {
-                    $finalField = $parentField;
-                    $finalValue = $parentProperties;
+                } else {
+                    if ($i === 0 || $checkpoint) {
+                        $finalField = $parentField;
+                        $finalValue = $parentProperties;
+                    }
                 }
             }
 
@@ -808,8 +827,6 @@ abstract class Model implements Jsonable, JsonSerializable
      */
     public function restore()
     {
-        $id = $this->getId();
-
         if (!$this->isPersisted()) {
             return false;
         }
@@ -819,6 +836,7 @@ abstract class Model implements Jsonable, JsonSerializable
         }
 
         $attempt = 1;
+        $id      = $this->getId();
 
         do {
             try {
@@ -920,8 +938,6 @@ abstract class Model implements Jsonable, JsonSerializable
      */
     private function softDelete()
     {
-        $id = $this->getId();
-
         if (!$this->isPersisted()) {
             return false;
         }
@@ -931,6 +947,7 @@ abstract class Model implements Jsonable, JsonSerializable
         }
 
         $attempt = 1;
+        $id      = $this->getId();
 
         do {
             try {
@@ -938,7 +955,11 @@ abstract class Model implements Jsonable, JsonSerializable
 
                 $result = static::collection()->updateOne(
                     ['_id' => $id],
-                    ['$set' => [static::$timestampFields['delete'] => getBsonDateFromDateTime($now)]]
+                    [
+                        '$set' => [
+                            static::$timestampFields['delete'] => getBsonDateFromDateTime($now),
+                        ],
+                    ]
                 );
 
                 if ($result->isAcknowledged() && $result->getMatchedCount() === 0) {
@@ -1058,7 +1079,10 @@ abstract class Model implements Jsonable, JsonSerializable
         $id = $this->getId();
 
         if ($id === false) {
-            throw new RuntimeException('Tried to save an object (' . get_called_class() . ') with an invalid ID.');
+            throw new RuntimeException(sprintf(
+                'Tried to save an object (%s) with an invalid ID.',
+                get_called_class()
+            ));
         }
 
         if (empty($this->updates) && $this->isPersisted()) {

@@ -3,8 +3,6 @@
 use MongoDB\BSON\ObjectId;
 use MongoDB\BSON\Timestamp;
 use MongoDB\BSON\UTCDateTime;
-use MongoDB\Client;
-use MongoDB\Database;
 
 if (!function_exists('checkNestedFieldNames')) {
     /**

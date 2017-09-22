@@ -28,9 +28,7 @@ class MongoDbServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->resolving('db', function ($databaseManager) {
-            /**
-             * @var DatabaseManager $databaseManager
-             */
+            /** @var DatabaseManager $databaseManager */
             $databaseManager->extend('mongodb', function ($config) {
                 return new MongoDbConnection($config);
             });

@@ -98,11 +98,7 @@ class BulkBuilder
      */
     public function deleteMany(array $filter)
     {
-        $this->addRaw([
-            'deleteMany' => [
-                $filter
-            ]
-        ]);
+        $this->addRaw(['deleteMany' => [$filter]]);
     }
 
     /**
@@ -112,11 +108,7 @@ class BulkBuilder
      */
     public function deleteOne(array $filter)
     {
-        $this->addRaw([
-            'deleteOne' => [
-                $filter
-            ]
-        ]);
+        $this->addRaw(['deleteOne' => [$filter]]);
     }
 
     /**
@@ -152,11 +144,7 @@ class BulkBuilder
      */
     public function insertOne(array $document)
     {
-        $this->addRaw([
-            'insertOne' => [
-                $document
-            ]
-        ]);
+        $this->addRaw(['insertOne' => [$document]]);
     }
 
     /**
@@ -168,13 +156,7 @@ class BulkBuilder
      */
     public function replaceOne(array $filter, array $replacement, array $options = [])
     {
-        $this->addRaw([
-            'replaceOne' => [
-                $filter,
-                $replacement,
-                $options
-            ]
-        ]);
+        $this->addRaw(['replaceOne' => [$filter, $replacement, $options]]);
     }
 
     /**
@@ -196,13 +178,7 @@ class BulkBuilder
      */
     public function updateMany(array $filter, array $update, array $options = [])
     {
-        $this->addRaw([
-            'updateMany' => [
-                $filter,
-                $update,
-                $options
-            ]
-        ]);
+        $this->addRaw(['updateMany' => [$filter, $update, $options]]);
     }
 
     /**
@@ -214,12 +190,6 @@ class BulkBuilder
      */
     public function updateOne(array $filter, array $update, array $options = [])
     {
-        $this->addRaw([
-            'updateOne' => [
-                $filter,
-                $update,
-                $options
-            ]
-        ]);
+        $this->addRaw(['updateOne' => [$filter, $update, $options]]);
     }
 }

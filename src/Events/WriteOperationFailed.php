@@ -10,7 +10,7 @@ use Lindelius\LaravelMongo\Model;
  *
  * @author  Tom Lindelius <tom.lindelius@gmail.com>
  * @package Lindelius\LaravelMongo
- * @version 0.2
+ * @version 0.3
  */
 class WriteOperationFailed
 {

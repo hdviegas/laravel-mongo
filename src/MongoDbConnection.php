@@ -13,19 +13,19 @@ use MongoDB\Database;
  *
  * @author  Tom Lindelius <tom.lindelius@gmail.com>
  * @package Lindelius\LaravelMongo
- * @version 0.2
+ * @version 0.3
  */
 class MongoDbConnection extends Connection
 {
     /**
-     * The MongoDB client instance.
+     * The MongoDB client.
      *
      * @var Client
      */
     protected $mongoClient;
 
     /**
-     * The MongoDB database instance.
+     * The current MongoDB database object.
      *
      * @var Database
      */
@@ -50,7 +50,8 @@ class MongoDbConnection extends Connection
     }
 
     /**
-     * Dynamically pass methods to the underlying MongoDB database instance.
+     * Dynamically pass calls to non-implemented methods to the underlying
+     * `MongoDB\Database` instance.
      *
      * @param  string $method
      * @param  array  $parameters
@@ -62,7 +63,7 @@ class MongoDbConnection extends Connection
     }
 
     /**
-     * Creates a MongoDB client instance.
+     * Creates a MongoDB client.
      *
      * @param  array $config
      * @return Client
@@ -78,17 +79,21 @@ class MongoDbConnection extends Connection
             throw new InvalidArgumentException('The database name must be a valid string.');
         }
 
+        if (is_array($config['hosts'])) {
+            $config['host'] = implode(',', $config['hosts']);
+        }
+
         $defaultDriverOptions = [
             'typeMap' => [
                 'root'     => 'array',
                 'document' => 'array',
-                'array'    => 'array'
-            ]
+                'array'    => 'array',
+            ],
         ];
 
         $defaultUriOptions = [
             'authSource'       => 'admin',
-            'connectTimeoutMS' => 5000
+            'connectTimeoutMS' => 5000,
         ];
 
         if (!empty($config['username']) && !empty($config['password'])) {
@@ -97,7 +102,7 @@ class MongoDbConnection extends Connection
         }
 
         return new Client(
-            sprintf('mongodb://%s/', is_array($config['hosts']) ? implode(',', $config['hosts']) : $config['hosts']),
+            sprintf('mongodb://%s/', $config['hosts']),
             array_merge($defaultUriOptions, $config['uriOptions']),
             array_merge($defaultDriverOptions, $config['driverOptions'])
         );
@@ -114,7 +119,8 @@ class MongoDbConnection extends Connection
     }
 
     /**
-     * Gets a MongoDB collection instance for a given collection in the current database.
+     * Gets a `MongoDB\Collection` instance for a given collection in the
+     * current database.
      *
      * @param  string $collection
      * @return Collection
@@ -125,7 +131,7 @@ class MongoDbConnection extends Connection
     }
 
     /**
-     * Gets the MongoDB database instance.
+     * Gets the current `MongoDB\Database` instance.
      *
      * @return Database
      */

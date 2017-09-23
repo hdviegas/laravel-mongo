@@ -79,6 +79,10 @@ class MongoDbConnection extends Connection
             throw new InvalidArgumentException('The database name must be a valid string.');
         }
 
+        if (empty($config['uriOptions']['replicaSet'])) {
+            unset($config['uriOptions']['replicaSet']);
+        }
+
         if (is_array($config['hosts'])) {
             $config['hosts'] = implode(',', $config['hosts']);
         }

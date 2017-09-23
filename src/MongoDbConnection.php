@@ -80,7 +80,7 @@ class MongoDbConnection extends Connection
         }
 
         if (is_array($config['hosts'])) {
-            $config['host'] = implode(',', $config['hosts']);
+            $config['hosts'] = implode(',', $config['hosts']);
         }
 
         $defaultDriverOptions = [

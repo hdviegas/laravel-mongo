@@ -23,7 +23,10 @@ if (!function_exists('checkNestedFieldNames')) {
         if (is_array($object) || is_object($object)) {
             foreach ($object as $key => $value) {
                 if (is_string($key) && (strpos($key, '.') !== false || trim($key)[0] === '$')) {
-                    throw new RuntimeException('Nested field names must not contain any dots, or start with a dollar sign.');
+                    throw new RuntimeException(sprintf(
+                        'The field key "%s" must neither contain dots nor start with a dollar sign.',
+                        $key
+                    ));
                 }
 
                 if (is_array($value) || is_object($value)) {
@@ -53,19 +56,19 @@ if (!function_exists('convertBsonDateObjects')) {
 
         if ($object instanceof UTCDateTime) {
             $object = $object->toDateTime();
-        } elseif (is_object($object)) {
+        } else if (is_object($object)) {
             foreach ($object as $key => $value) {
                 if ($value instanceof UTCDateTime) {
                     $object->{$key} = $value->toDateTime();
-                } elseif (is_array($value) || is_object($value)) {
+                } else if (is_array($value) || is_object($value)) {
                     $object->{$key} = convertBsonDateObjects($value, $nestingLevel);
                 }
             }
-        } elseif (is_array($object)) {
+        } else if (is_array($object)) {
             foreach ($object as $key => $value) {
                 if ($value instanceof UTCDateTime) {
                     $object[$key] = $value->toDateTime();
-                } elseif (is_array($value) || is_object($value)) {
+                } else if (is_array($value) || is_object($value)) {
                     $object[$key] = convertBsonDateObjects($value, $nestingLevel);
                 }
             }
@@ -94,19 +97,19 @@ if (!function_exists('convertDateTimeObjects')) {
 
         if ($object instanceof DateTime) {
             $object = getBsonDateFromDateTime($object);
-        } elseif (is_object($object)) {
+        } else if (is_object($object)) {
             foreach ($object as $key => $value) {
                 if ($value instanceof DateTime) {
                     $object->{$key} = getBsonDateFromDateTime($value);
-                } elseif (is_array($value) || is_object($value)) {
+                } else if (is_array($value) || is_object($value)) {
                     $object->{$key} = convertDateTimeObjects($value, $nestingLevel);
                 }
             }
-        } elseif (is_array($object)) {
+        } else if (is_array($object)) {
             foreach ($object as $key => $value) {
                 if ($value instanceof DateTime) {
                     $object[$key] = getBsonDateFromDateTime($value);
-                } elseif (is_array($value) || is_object($value)) {
+                } else if (is_array($value) || is_object($value)) {
                     $object[$key] = convertDateTimeObjects($value, $nestingLevel);
                 }
             }
@@ -160,7 +163,7 @@ if (!function_exists('sanitizeFieldKey')) {
         }
 
         if (!is_string($value)) {
-            throw new InvalidArgumentException('The field key must be a valid string or an integer.');
+            throw new InvalidArgumentException('The field key must be either a valid string or an integer.');
         }
 
         $value = trim($value);
@@ -169,7 +172,10 @@ if (!function_exists('sanitizeFieldKey')) {
             if ($cleanUpKey) {
                 $value = trim(preg_replace(['/\./u', '/^\$/u'], '', $value));
             } else {
-                throw new InvalidArgumentException('The field key must not contain any dots, or start with a dollar sign.');
+                throw new InvalidArgumentException(sprintf(
+                    'The field key "%s" must neither contain dots nor start with a dollar sign.',
+                    $value
+                ));
             }
         }
 

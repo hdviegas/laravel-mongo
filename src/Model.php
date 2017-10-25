@@ -789,7 +789,7 @@ abstract class Model implements Jsonable, JsonSerializable
                     $finalField = $parentField;
                     $finalValue = $parentProperties;
                     break;
-                } else if ($i === 0 || $checkpoint) {
+                } elseif ($i === 0 || $checkpoint) {
                     $finalField = $parentField;
                     $finalValue = $parentProperties;
                 }

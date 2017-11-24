@@ -56,7 +56,7 @@ Please note that this library does *not* extend Eloquent, as Eloquent is designe
 In order to install this library, issue the following command from your Laravel or Lumen project's root folder:
 
 ```
-composer require "lindelius/laravel-mongo=^0.3"
+composer require "lindelius/laravel-mongo=^0.4"
 ```
 
 After installing the library, configure your database connection by adding the following to the _connections_ array in the `config/database.php` file (for Lumen installations you will first have to create the _config_ directory yourself and then copy the `database.php` file from `vendor/laravel/lumen-framework/config/`). You will also have to add the `DB_AUTHSOURCE` and `DB_RSNAME` variables to the environment file, if you'd like to override the default values.
